@@ -102,7 +102,7 @@
                                                 <t t-esc="trip.name"/>
                                             </a>
                                         </td>
-                                        <td><t t-esc="trip.destination_city_id.name"/></td>
+                                        <td><t t-esc="trip.destination_city"/></td>
                                         <td><t t-esc="trip.date_start"/></td>
                                         <td><t t-esc="trip.date_end"/></td>
                                         <td>
@@ -160,10 +160,10 @@
                     <div class="card btr-form-card mb-3">
                         <div class="card-header">Business Trip Information</div>
                         <div class="card-body row g-3">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label">Country *</label>
                                 <select name="destination_country_id" id="btr_country_select"
-                                        class="form-select" required="required" onchange="btrFilterCities()">
+                                        class="form-select" required="required" onchange="btrFilterStates()">
                                     <option value="">-</option>
                                     <t t-foreach="countries" t-as="country">
                                         <option t-att-value="country.id"
@@ -173,19 +173,23 @@
                                     </t>
                                 </select>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Assignment Location (City) *</label>
-                                <select name="destination_city_id" id="btr_city_select"
-                                        class="form-select" required="required">
+                            <div class="col-md-4">
+                                <label class="form-label">State/Province</label>
+                                <select name="destination_state_id" id="btr_state_select" class="form-select">
                                     <option value="">-</option>
-                                    <t t-foreach="cities" t-as="city">
-                                        <option t-att-value="city.id" t-att-data-country="city.country_id.id"
-                                                t-att-selected="formdata.get('destination_city_id') == str(city.id) or None">
-                                            <t t-esc="city.name"/>
+                                    <t t-foreach="states" t-as="rstate">
+                                        <option t-att-value="rstate.id" t-att-data-country="rstate.country_id.id"
+                                                t-att-selected="formdata.get('destination_state_id') == str(rstate.id) or None">
+                                            <t t-esc="rstate.name"/>
                                         </option>
                                     </t>
                                 </select>
-                                <div class="form-text">Select a country first to narrow this list.</div>
+                                <div class="form-text">Optional - select a country first to narrow this list.</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Assignment Location (City) *</label>
+                                <input type="text" name="destination_city" class="form-control" required="required"
+                                       t-att-value="formdata.get('destination_city')"/>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Total Travel Distance (km, domestic only)</label>
@@ -295,12 +299,12 @@
                 </form>
             </div>
             <script>
-                function btrFilterCities() {
+                function btrFilterStates() {
                     var countrySelect = document.getElementById('btr_country_select');
-                    var citySelect = document.getElementById('btr_city_select');
-                    if (!countrySelect || !citySelect) { return; }
+                    var stateSelect = document.getElementById('btr_state_select');
+                    if (!countrySelect || !stateSelect) { return; }
                     var countryId = countrySelect.value;
-                    var options = citySelect.querySelectorAll('option[data-country]');
+                    var options = stateSelect.querySelectorAll('option[data-country]');
                     var hasVisibleSelected = false;
                     options.forEach(function (opt) {
                         var match = countryId &amp;&amp; opt.getAttribute('data-country') === countryId;
@@ -308,9 +312,9 @@
                         opt.disabled = !match;
                         if (match &amp;&amp; opt.selected) { hasVisibleSelected = true; }
                     });
-                    if (!hasVisibleSelected) { citySelect.value = ''; }
+                    if (!hasVisibleSelected) { stateSelect.value = ''; }
                 }
-                document.addEventListener('DOMContentLoaded', btrFilterCities);
+                document.addEventListener('DOMContentLoaded', btrFilterStates);
             </script>
         </t>
     </template>
@@ -341,7 +345,9 @@
                             <div class="btr-card-body">
                                 <table class="table table-sm mb-3">
                                     <tr><td class="text-muted">Destination</td><td>
-                                        <t t-esc="trip.destination_city_id.name"/>, <t t-esc="trip.destination_country_id.name"/>
+                                        <t t-esc="trip.destination_city"/>
+                                        <t t-if="trip.destination_state_id">, <t t-esc="trip.destination_state_id.name"/></t>,
+                                        <t t-esc="trip.destination_country_id.name"/>
                                     </td></tr>
                                     <tr><td class="text-muted">Type</td><td><t t-esc="trip.trip_type"/></td></tr>
                                     <tr><td class="text-muted">Start Date</td><td><t t-esc="trip.date_start"/></td></tr>

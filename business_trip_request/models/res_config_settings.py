@@ -63,3 +63,6 @@ class ResConfigSettings(models.TransientModel):
     business_trip_peak_season_end_month = fields.Integer(
         related="company_id.business_trip_peak_season_end_month", readonly=False
     )
+    business_trip_peak_cities = fields.Char(
+        related="company_id.business_trip_peak_cities", readonly=False
+    )

@@ -102,7 +102,8 @@ class BusinessTripPortal(CustomerPortal):
 
         return {
             "employee_id": employee.id,
-            "destination_city_id": to_int("destination_city_id") or False,
+            "destination_city": kw.get("destination_city"),
+            "destination_state_id": to_int("destination_state_id") or False,
             "destination_country_id": to_int("destination_country_id") or False,
             "distance_km": to_float("distance_km"),
             "purpose": kw.get("purpose"),
@@ -226,7 +227,7 @@ class BusinessTripPortal(CustomerPortal):
         values = {
             "employee": employee,
             "countries": request.env["res.country"].sudo().search([]),
-            "cities": request.env["business.trip.city"].sudo().search([]),
+            "states": request.env["res.country.state"].sudo().search([]),
             "error": error,
             "formdata": kw,
             "page_name": "business_trip_new",

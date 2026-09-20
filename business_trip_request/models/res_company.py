@@ -65,3 +65,9 @@ class ResCompany(models.Model):
     business_trip_peak_season_end_month = fields.Integer(
         string="Peak Season End Month", default=8
     )
+    business_trip_peak_cities = fields.Char(
+        string="Peak Period Cities",
+        default="Abha, Jeddah, Makkah, Madinah, Dammam, NEOM",
+        help="Comma-separated city names treated as peak-period locations "
+        "during the configured peak season (or a configured Peak Period date range).",
+    )

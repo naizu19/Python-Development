@@ -17,10 +17,6 @@ class TestBusinessTripRequest(TransactionCase):
         cls.uae = cls.env.ref("base.ae")
         cls.japan = cls.env.ref("base.jp")
 
-        cls.city_riyadh = cls.env.ref("business_trip_request.city_riyadh")
-        cls.city_dubai = cls.env.ref("business_trip_request.city_dubai")
-        cls.city_tokyo = cls.env.ref("business_trip_request.city_tokyo")
-
         cls.employee = cls.env["hr.employee"].create(
             {"name": "Omar Alhamdan", "company_id": cls.company.id}
         )
@@ -34,7 +30,7 @@ class TestBusinessTripRequest(TransactionCase):
     def _make_request(self, **overrides):
         vals = {
             "employee_id": self.employee.id,
-            "destination_city_id": self.city_riyadh.id,
+            "destination_city": "Riyadh",
             "destination_country_id": self.saudi.id,
             "purpose": "Client meeting",
             "objectives": "Close the annual services contract",
@@ -54,7 +50,7 @@ class TestBusinessTripRequest(TransactionCase):
 
     def test_international_detection(self):
         trip = self._make_request(
-            destination_city_id=self.city_dubai.id, destination_country_id=self.uae.id
+            destination_city="Dubai", destination_country_id=self.uae.id
         )
         self.assertEqual(trip.trip_type, "international")
 
@@ -184,14 +180,14 @@ class TestBusinessTripRequest(TransactionCase):
     # ------------------------------------------------------------
     def test_international_short_flight_adds_one_day(self):
         trip = self._make_request(
-            destination_city_id=self.city_dubai.id, destination_country_id=self.uae.id,
+            destination_city="Dubai", destination_country_id=self.uae.id,
             flight_duration_hours=2.5,
         )
         self.assertEqual(trip.extra_days, 1)
 
     def test_international_long_flight_adds_two_days(self):
         trip = self._make_request(
-            destination_city_id=self.city_tokyo.id, destination_country_id=self.japan.id,
+            destination_city="Tokyo", destination_country_id=self.japan.id,
             flight_duration_hours=10,
         )
         self.assertEqual(trip.extra_days, 2)
@@ -233,30 +229,51 @@ class TestBusinessTripRequest(TransactionCase):
         self.assertEqual(trip.other_specify, "Need a translator on-site")
 
     # ------------------------------------------------------------
-    # Destination city is filtered by / tied to its country
+    # Destination State/Province is domain-filtered by country
     # ------------------------------------------------------------
-    def test_city_belongs_to_its_country(self):
-        self.assertEqual(self.city_riyadh.country_id, self.saudi)
-        self.assertEqual(self.city_dubai.country_id, self.uae)
-
-    def test_peak_city_flag_drives_peak_period(self):
-        # Jeddah is seeded as a peak city; peak season defaults to June-August.
-        city_jeddah = self.env.ref("business_trip_request.city_jeddah")
+    def test_state_domain_matches_its_country(self):
+        state = self.env["res.country.state"].search(
+            [("country_id", "=", self.uae.id)], limit=1
+        )
+        if not state:
+            state = self.env["res.country.state"].create(
+                {"name": "Dubai Emirate", "code": "DU", "country_id": self.uae.id}
+            )
         trip = self._make_request(
-            destination_city_id=city_jeddah.id,
+            destination_city="Dubai", destination_country_id=self.uae.id,
+            destination_state_id=state.id,
+        )
+        self.assertEqual(trip.destination_state_id.country_id, self.uae)
+
+    # ------------------------------------------------------------
+    # Peak period cities: configurable comma-separated list (Settings)
+    # ------------------------------------------------------------
+    def test_peak_city_from_configured_list_drives_peak_period(self):
+        # "Jeddah" is in the default business_trip_peak_cities list;
+        # peak season defaults to June-August.
+        trip = self._make_request(
+            destination_city="Jeddah",
             date_start="2027-07-15",
             date_end="2027-07-18",
         )
         self.assertTrue(trip.is_peak_period)
 
     def test_non_peak_city_is_never_peak_period(self):
-        city_riyadh = self.env.ref("business_trip_request.city_riyadh")
         trip = self._make_request(
-            destination_city_id=city_riyadh.id,
+            destination_city="Riyadh",
             date_start="2027-07-15",
             date_end="2027-07-18",
         )
         self.assertFalse(trip.is_peak_period)
+
+    def test_peak_cities_list_is_configurable(self):
+        self.company.business_trip_peak_cities = "Riyadh"
+        trip = self._make_request(
+            destination_city="Riyadh",
+            date_start="2027-07-15",
+            date_end="2027-07-18",
+        )
+        self.assertTrue(trip.is_peak_period)
 
     # ------------------------------------------------------------
     # Approval workflow: configurable steps, sequential, group-driven

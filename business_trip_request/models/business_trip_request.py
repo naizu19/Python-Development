@@ -70,12 +70,13 @@ class BusinessTripRequest(models.Model):
     # Trip information
     # ---------------------------------------------------------------
     destination_country_id = fields.Many2one("res.country", required=True)
-    destination_city_id = fields.Many2one(
-        "business.trip.city",
-        string="Assignment Location (City)",
-        required=True,
+    destination_state_id = fields.Many2one(
+        "res.country.state",
+        string="State/Province",
         domain="[('country_id', '=', destination_country_id)]",
+        help="Optional - not every country/city needs one.",
     )
+    destination_city = fields.Char(string="Assignment Location (City)", required=True)
     distance_km = fields.Float(
         string="Total Travel Distance (km)",
         help="Used to determine whether a domestic assignment qualifies as a "
@@ -125,8 +126,8 @@ class BusinessTripRequest(models.Model):
 
     @api.onchange("destination_country_id")
     def _onchange_destination_country_id(self):
-        if self.destination_city_id.country_id != self.destination_country_id:
-            self.destination_city_id = False
+        if self.destination_state_id.country_id != self.destination_country_id:
+            self.destination_state_id = False
 
     @api.depends("date_start", "date_end", "overnight_stay", "trip_type", "distance_km",
                  "company_id.business_trip_formal_distance_km")
@@ -163,13 +164,20 @@ class BusinessTripRequest(models.Model):
             else:
                 rec.trip_type = False
 
-    @api.depends("destination_city_id", "date_start",
+    @api.depends("destination_city", "date_start",
+                 "company_id.business_trip_peak_cities",
                  "company_id.business_trip_peak_season_start_month",
                  "company_id.business_trip_peak_season_end_month")
     def _compute_peak_period(self):
         for rec in self:
             is_peak = False
-            if rec.destination_city_id.is_peak_city and rec.date_start:
+            peak_cities = [
+                c.strip().lower()
+                for c in (rec.company_id.business_trip_peak_cities or "").split(",")
+                if c.strip()
+            ]
+            city = (rec.destination_city or "").strip().lower()
+            if city and city in peak_cities and rec.date_start:
                 start_month = rec.company_id.business_trip_peak_season_start_month or 6
                 end_month = rec.company_id.business_trip_peak_season_end_month or 8
                 if start_month <= rec.date_start.month <= end_month:

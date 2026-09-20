@@ -21,8 +21,9 @@ Implements the full business-assignment lifecycle:
 * Cash advance request and control
 * Post-trip report, report approval and HR/Finance settlement
 * Frequent traveler flag and travel-class eligibility informational data
-* Destination city picked from a country-filtered list, with peak-period
-  cities flagged and managed from Configuration
+* Destination City (free text) plus an optional State/Province dropdown
+  filtered by country; peak-period cities configured as a simple list in
+  Settings
 * Employee self-service Website/Portal pages (/my/business-trips) to submit,
   track and report on requests without needing an internal user seat
 """,
@@ -35,12 +36,10 @@ Implements the full business-assignment lifecycle:
         "security/ir.model.access.csv",
         "data/ir_sequence_data.xml",
         "data/allowance_rule_data.xml",
-        "data/business_trip_city_data.xml",
         "data/approval_step_data.xml",
         "views/hr_employee_views.xml",
         "views/business_trip_allowance_rule_views.xml",
         "views/business_trip_peak_period_views.xml",
-        "views/business_trip_city_views.xml",
         "views/business_trip_approval_step_views.xml",
         "views/business_trip_request_views.xml",
         "views/res_config_settings_views.xml",

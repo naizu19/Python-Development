@@ -171,6 +171,10 @@
                                         <field name="business_trip_peak_season_end_month"/>
                                     </div>
                                 </div>
+                                <div class="content-group mt8">
+                                    <label for="business_trip_peak_cities" string="Peak period cities"/>
+                                    <field name="business_trip_peak_cities" placeholder="e.g. Abha, Jeddah, Makkah"/>
+                                </div>
                             </div>
                         </div>
                     </div>
