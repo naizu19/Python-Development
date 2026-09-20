@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_business_trip_request_portal_own" model="ir.rule">
+        <field name="name">Business Trip Request: portal own requests only</field>
+        <field name="model_id" ref="business_trip_request.model_business_trip_request"/>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
+    </record>
+</odoo>

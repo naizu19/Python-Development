@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="portal_my_home_business_trip" name="Business Trips in Portal My Home"
+              inherit_id="portal.portal_my_home" customize_show="True" priority="60">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Business Trips</t>
+                <t t-set="url" t-value="'/my/business-trips'"/>
+                <t t-set="placeholder_count" t-value="'business_trip_count'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="portal_my_business_trips" name="My Business Trip Requests">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Business Trips</t>
+            </t>
+            <div class="mb-3">
+                <a href="/my/business-trips/new" class="btn btn-primary">
+                    New Business Trip / Assignment Request
+                </a>
+            </div>
+            <t t-if="not trips">
+                <p class="alert alert-warning">There are no business trip requests yet.</p>
+            </t>
+            <t t-if="trips">
+                <table class="table table-hover o_portal_my_doc_table">
+                    <thead>
+                        <tr class="active">
+                            <th>Request No.</th>
+                            <th>Destination</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Status</th>
+                            <th class="text-end">Net Allowance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="trips" t-as="trip">
+                            <td>
+                                <a t-attf-href="/my/business-trips/#{trip.id}">
+                                    <t t-esc="trip.name"/>
+                                </a>
+                            </td>
+                            <td><t t-esc="trip.destination_city"/></td>
+                            <td><t t-esc="trip.date_start"/></td>
+                            <td><t t-esc="trip.date_end"/></td>
+                            <td>
+                                <span class="badge text-bg-secondary"
+                                      t-esc="dict(trip._fields['state'].selection).get(trip.state)"/>
+                            </td>
+                            <td class="text-end">
+                                <t t-esc="trip.net_allowance" t-options="{'widget': 'monetary', 'display_currency': trip.currency_id}"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <t t-call="portal.pager"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="portal_business_trip_form" name="New Business Trip Request">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="False"/>
+            <div class="clearfix mb-3">
+                <ol class="breadcrumb float-start">
+                    <li class="breadcrumb-item"><a href="/my/business-trips">Business Trips</a></li>
+                    <li class="breadcrumb-item active">New Request</li>
+                </ol>
+            </div>
+            <div t-if="error and error.get('general')" class="alert alert-danger">
+                <t t-esc="error.get('general')"/>
+            </div>
+            <form action="/my/business-trips/new" method="post" class="row g-3">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                <div class="col-12"><h5>Employee Information</h5></div>
+                <div class="col-md-6">
+                    <label class="form-label">Employee</label>
+                    <input type="text" class="form-control" readonly="readonly"
+                           t-att-value="employee.name"/>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Job Title</label>
+                    <input type="text" class="form-control" readonly="readonly"
+                           t-att-value="employee.job_title"/>
+                </div>
+
+                <div class="col-12"><hr/><h5>Business Trip Information</h5></div>
+                <div class="col-md-6">
+                    <label class="form-label">Assignment Location (City) *</label>
+                    <input type="text" name="destination_city" class="form-control" required="required"
+                           t-att-value="formdata.get('destination_city')"/>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Country *</label>
+                    <select name="destination_country_id" class="form-select" required="required">
+                        <option value="">-</option>
+                        <t t-foreach="countries" t-as="country">
+                            <option t-att-value="country.id"
+                                    t-att-selected="formdata.get('destination_country_id') == str(country.id) or None">
+                                <t t-esc="country.name"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Total Travel Distance (km, domestic only)</label>
+                    <input type="number" step="0.1" name="distance_km" class="form-control"
+                           t-att-value="formdata.get('distance_km')"/>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Flight Duration (hours, international only)</label>
+                    <input type="number" step="0.1" name="flight_duration_hours" class="form-control"
+                           t-att-value="formdata.get('flight_duration_hours')"/>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Assignment Purpose *</label>
+                    <textarea name="purpose" class="form-control" rows="2" required="required">
+                        <t t-esc="formdata.get('purpose')"/>
+                    </textarea>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Business Trip Objectives *</label>
+                    <textarea name="objectives" class="form-control" rows="2" required="required">
+                        <t t-esc="formdata.get('objectives')"/>
+                    </textarea>
+                </div>
+
+                <div class="col-12"><hr/><h5>Trip Dates</h5></div>
+                <div class="col-md-4">
+                    <label class="form-label">Start Date *</label>
+                    <input type="date" name="date_start" class="form-control" required="required"
+                           t-att-value="formdata.get('date_start')"/>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">End Date *</label>
+                    <input type="date" name="date_end" class="form-control" required="required"
+                           t-att-value="formdata.get('date_end')"/>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="overnight_stay" value="1"/>
+                        <label class="form-check-label">Overnight Stay Required</label>
+                    </div>
+                </div>
+
+                <div class="col-12"><hr/><h5>Travel &amp; Support Requirements</h5></div>
+                <div class="col-md-3">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="need_flight" value="1"/>
+                        <label class="form-check-label">Flight Ticket Booking</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="need_transportation" value="1"/>
+                        <label class="form-check-label">Transportation / Rental Car</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="need_visa" value="1"/>
+                        <label class="form-check-label">Exit/Re-entry Visa</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="need_other" value="1"/>
+                        <label class="form-check-label">Other</label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Please Specify (if Other)</label>
+                    <input type="text" name="other_specify" class="form-control"/>
+                </div>
+
+                <div class="col-12"><hr/><h5>Cash Advance</h5></div>
+                <div class="col-md-3 d-flex align-items-center">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="advance_required" value="1"/>
+                        <label class="form-check-label">Advance Required?</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Requested Advance</label>
+                    <input type="number" step="0.01" name="requested_advance" class="form-control"/>
+                </div>
+
+                <div class="col-12"><hr/></div>
+                <div class="col-12">
+                    <button type="submit" name="save_draft" class="btn btn-secondary">Save as Draft</button>
+                    <button type="submit" name="submit_now" value="1" class="btn btn-primary">
+                        Save &amp; Submit for Approval
+                    </button>
+                </div>
+            </form>
+        </t>
+    </template>
+
+    <template id="portal_business_trip_detail" name="Business Trip Request Detail">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="False"/>
+            <div class="clearfix mb-3">
+                <ol class="breadcrumb float-start">
+                    <li class="breadcrumb-item"><a href="/my/business-trips">Business Trips</a></li>
+                    <li class="breadcrumb-item active"><t t-esc="trip.name"/></li>
+                </ol>
+            </div>
+
+            <div t-if="error" class="alert alert-danger"><t t-esc="error"/></div>
+
+            <h3>
+                <t t-esc="trip.name"/> -
+                <span class="badge text-bg-secondary"
+                      t-esc="dict(trip._fields['state'].selection).get(trip.state)"/>
+            </h3>
+
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h5>Trip Information</h5>
+                    <table class="table table-sm">
+                        <tr><td>Destination</td><td>
+                            <t t-esc="trip.destination_city"/>, <t t-esc="trip.destination_country_id.name"/>
+                        </td></tr>
+                        <tr><td>Type</td><td><t t-esc="trip.trip_type"/></td></tr>
+                        <tr><td>Start Date</td><td><t t-esc="trip.date_start"/></td></tr>
+                        <tr><td>End Date</td><td><t t-esc="trip.date_end"/></td></tr>
+                        <tr><td>Total Days</td><td><t t-esc="trip.total_days"/></td></tr>
+                        <tr><td>Overnight Stay</td><td><t t-esc="'Yes' if trip.overnight_stay else 'No'"/></td></tr>
+                        <tr><td>Formal Assignment</td><td><t t-esc="'Yes' if trip.is_formal_assignment else 'No'"/></td></tr>
+                    </table>
+                    <p><strong>Purpose:</strong><br/><t t-esc="trip.purpose"/></p>
+                    <p><strong>Objectives:</strong><br/><t t-esc="trip.objectives"/></p>
+                    <div t-if="trip.validation_warning_ids" class="alert alert-info" style="white-space: pre-line;">
+                        <t t-esc="trip.validation_warning_ids"/>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <h5>Approval History</h5>
+                    <table class="table table-sm">
+                        <thead><tr><th>Step</th><th>Approver</th><th>Status</th><th>Date</th></tr></thead>
+                        <tbody>
+                            <tr t-foreach="trip.approval_line_ids" t-as="line">
+                                <td><t t-esc="line.role"/></td>
+                                <td><t t-esc="line.approver_id.name"/></td>
+                                <td><t t-esc="line.state"/></td>
+                                <td><t t-esc="line.date"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p t-if="trip.state == 'rejected'"><strong>Rejection Reason:</strong> <t t-esc="trip.rejection_reason"/></p>
+                    <p t-if="trip.state == 'returned'"><strong>Return Comment:</strong> <t t-esc="trip.return_comment"/></p>
+
+                    <div t-if="trip.state in ('allowance_calculated', 'ready_for_travel', 'trip_in_progress', 'trip_report_required', 'trip_report_under_approval', 'settlement', 'completed')">
+                        <h5>Allowance</h5>
+                        <table class="table table-sm">
+                            <tr><td>Net Allowance</td><td>
+                                <t t-esc="trip.net_allowance" t-options="{'widget': 'monetary', 'display_currency': trip.currency_id}"/>
+                            </td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <form t-if="trip.state == 'draft'" action="#" t-attf-action="/my/business-trips/#{trip.id}/submit" method="post" class="d-inline">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <button type="submit" class="btn btn-primary">Submit for Approval</button>
+                </form>
+                <form t-if="trip.state == 'returned'" action="#" t-attf-action="/my/business-trips/#{trip.id}/resubmit" method="post" class="d-inline">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <button type="submit" class="btn btn-primary">Move Back to Draft</button>
+                </form>
+            </div>
+
+            <div t-if="trip.state == 'trip_report_required'" class="mt-4">
+                <h5>Business Trip Report</h5>
+                <form action="#" t-attf-action="/my/business-trips/#{trip.id}/report" method="post" class="row g-3">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <div class="col-md-6">
+                        <label class="form-label">Actual Start Date *</label>
+                        <input type="date" name="actual_date_start" class="form-control" required="required"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Actual Return Date *</label>
+                        <input type="date" name="actual_date_end" class="form-control" required="required"/>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Summary of Work Performed *</label>
+                        <textarea name="work_summary" class="form-control" rows="3" required="required"/>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Objectives Achieved</label>
+                        <textarea name="objectives_achieved" class="form-control" rows="2"/>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Notes</label>
+                        <textarea name="report_notes" class="form-control" rows="2"/>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Submit Trip Report</button>
+                    </div>
+                </form>
+            </div>
+        </t>
+    </template>
+
+</odoo>
