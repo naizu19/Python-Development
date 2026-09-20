@@ -191,9 +191,4 @@
         <field name="context">{'module': 'business_trip_request'}</field>
     </record>
 
-    <menuitem id="menu_business_trip_config_settings" name="Business Trips"
-              parent="base_setup.menu_general_settings"
-              action="action_business_trip_config_settings"
-              groups="business_trip_request.group_business_trip_hr"
-              sequence="90"/>
 </odoo>

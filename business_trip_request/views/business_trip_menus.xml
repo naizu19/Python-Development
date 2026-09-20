@@ -29,4 +29,8 @@
     <menuitem id="menu_business_trip_approval_step" name="Approval Steps"
               parent="menu_business_trip_configuration" action="action_business_trip_approval_step"
               sequence="40" groups="business_trip_request.group_business_trip_hr"/>
+
+    <menuitem id="menu_business_trip_config_settings" name="Policy Settings"
+              parent="menu_business_trip_configuration" action="action_business_trip_config_settings"
+              sequence="50" groups="business_trip_request.group_business_trip_hr"/>
 </odoo>
