@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_company_form_business_trip" model="ir.ui.view">
+        <field name="name">res.company.form.business.trip</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Business Trip / Assignment Policy" name="business_trip_policy">
+                    <group>
+                        <field name="business_trip_ceo_user_id"/>
+                        <field name="business_trip_short_domestic_rate"/>
+                        <field name="business_trip_min_advance_days"/>
+                        <field name="business_trip_advance_request_min_days"/>
+                    </group>
+                    <group>
+                        <field name="business_trip_max_single_days"/>
+                        <field name="business_trip_settlement_days"/>
+                        <field name="business_trip_transportation_deduction_pct"/>
+                        <field name="business_trip_senior_mgmt_adjustment_pct"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

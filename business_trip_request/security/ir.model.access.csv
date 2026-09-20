@@ -1,0 +1,12 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_business_trip_request_user,business.trip.request.user,model_business_trip_request,group_business_trip_user,1,1,1,0
+access_business_trip_request_hr,business.trip.request.hr,model_business_trip_request,group_business_trip_hr,1,1,1,1
+access_business_trip_request_finance,business.trip.request.finance,model_business_trip_request,group_business_trip_finance,1,1,0,0
+access_business_trip_request_ceo,business.trip.request.ceo,model_business_trip_request,group_business_trip_ceo,1,1,0,0
+access_business_trip_approval_line_user,business.trip.approval.line.user,model_business_trip_approval_line,group_business_trip_user,1,1,1,0
+access_business_trip_approval_line_hr,business.trip.approval.line.hr,model_business_trip_approval_line,group_business_trip_hr,1,1,1,1
+access_business_trip_allowance_rule_user,business.trip.allowance.rule.user,model_business_trip_allowance_rule,group_business_trip_user,1,0,0,0
+access_business_trip_allowance_rule_hr,business.trip.allowance.rule.hr,model_business_trip_allowance_rule,group_business_trip_hr,1,1,1,1
+access_business_trip_peak_period_user,business.trip.peak.period.user,model_business_trip_peak_period,group_business_trip_user,1,0,0,0
+access_business_trip_peak_period_hr,business.trip.peak.period.hr,model_business_trip_peak_period,group_business_trip_hr,1,1,1,1
+access_business_trip_reason_wizard,business.trip.reason.wizard,model_business_trip_reason_wizard,group_business_trip_user,1,1,1,1

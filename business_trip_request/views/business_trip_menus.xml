@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_business_trip_root" name="Business Trips" sequence="60"/>
+
+    <menuitem id="menu_business_trip_my_requests" name="My Requests"
+              parent="menu_business_trip_root" action="action_business_trip_request"
+              sequence="10"/>
+
+    <menuitem id="menu_business_trip_hr" name="HR"
+              parent="menu_business_trip_root" sequence="20"
+              groups="business_trip_request.group_business_trip_hr,business_trip_request.group_business_trip_finance"/>
+
+    <menuitem id="menu_business_trip_hr_all_requests" name="All Requests"
+              parent="menu_business_trip_hr" action="action_business_trip_request_hr"
+              sequence="10" groups="business_trip_request.group_business_trip_hr,business_trip_request.group_business_trip_finance"/>
+
+    <menuitem id="menu_business_trip_configuration" name="Configuration"
+              parent="menu_business_trip_root" sequence="30"
+              groups="business_trip_request.group_business_trip_hr"/>
+
+    <menuitem id="menu_business_trip_allowance_rule" name="Allowance Rules"
+              parent="menu_business_trip_configuration" action="action_business_trip_allowance_rule"
+              sequence="10" groups="business_trip_request.group_business_trip_hr"/>
+
+    <menuitem id="menu_business_trip_peak_period" name="Peak Periods"
+              parent="menu_business_trip_configuration" action="action_business_trip_peak_period"
+              sequence="20" groups="business_trip_request.group_business_trip_hr"/>
+</odoo>

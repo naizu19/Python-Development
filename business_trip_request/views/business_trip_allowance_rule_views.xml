@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_business_trip_allowance_rule_tree" model="ir.ui.view">
+        <field name="name">business.trip.allowance.rule.tree</field>
+        <field name="model">business.trip.allowance.rule</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="trip_type"/>
+                <field name="region"/>
+                <field name="percentage"/>
+                <field name="min_amount"/>
+                <field name="max_amount"/>
+                <field name="max_days"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_business_trip_allowance_rule" model="ir.actions.act_window">
+        <field name="name">Allowance Rules</field>
+        <field name="res_model">business.trip.allowance.rule</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

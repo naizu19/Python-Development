@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="allowance_rule_domestic" model="business.trip.allowance.rule">
+        <field name="name">Domestic Assignment (Standard)</field>
+        <field name="trip_type">domestic</field>
+        <field name="percentage">10.0</field>
+        <field name="min_amount">250.0</field>
+        <field name="max_amount">500.0</field>
+        <field name="max_days">45</field>
+    </record>
+
+    <record id="allowance_rule_international_arabic" model="business.trip.allowance.rule">
+        <field name="name">International - Arabic Countries</field>
+        <field name="trip_type">international</field>
+        <field name="region">arabic</field>
+        <field name="percentage">20.0</field>
+        <field name="min_amount">300.0</field>
+        <field name="max_amount">600.0</field>
+        <field name="max_days">18</field>
+    </record>
+
+    <record id="allowance_rule_international_asian" model="business.trip.allowance.rule">
+        <field name="name">International - Asian Countries</field>
+        <field name="trip_type">international</field>
+        <field name="region">asian</field>
+        <field name="percentage">15.0</field>
+        <field name="min_amount">500.0</field>
+        <field name="max_amount">1000.0</field>
+        <field name="max_days">18</field>
+    </record>
+
+    <record id="allowance_rule_international_europe_japan" model="business.trip.allowance.rule">
+        <field name="name">International - Europe / Japan</field>
+        <field name="trip_type">international</field>
+        <field name="region">europe_japan</field>
+        <field name="percentage">25.0</field>
+        <field name="min_amount">1500.0</field>
+        <field name="max_amount">2000.0</field>
+        <field name="max_days">18</field>
+    </record>
+</odoo>
