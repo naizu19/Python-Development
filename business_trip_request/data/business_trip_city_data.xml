@@ -113,7 +113,7 @@
     </record>
     <record id="city_london" model="business.trip.city">
         <field name="name">London</field>
-        <field name="country_id" ref="base.gb"/>
+        <field name="country_id" ref="base.uk"/>
     </record>
     <record id="city_paris" model="business.trip.city">
         <field name="name">Paris</field>
