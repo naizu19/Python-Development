@@ -1,137 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
     <!-- Saudi Arabia -->
-    <record id="city_riyadh" model="res.city">
+    <record id="city_riyadh" model="business.trip.city">
         <field name="name">Riyadh</field>
         <field name="country_id" ref="base.sa"/>
     </record>
-    <record id="city_jeddah" model="res.city">
+    <record id="city_jeddah" model="business.trip.city">
         <field name="name">Jeddah</field>
         <field name="country_id" ref="base.sa"/>
         <field name="is_peak_city">True</field>
     </record>
-    <record id="city_makkah" model="res.city">
+    <record id="city_makkah" model="business.trip.city">
         <field name="name">Makkah</field>
         <field name="country_id" ref="base.sa"/>
         <field name="is_peak_city">True</field>
     </record>
-    <record id="city_madinah" model="res.city">
+    <record id="city_madinah" model="business.trip.city">
         <field name="name">Madinah</field>
         <field name="country_id" ref="base.sa"/>
         <field name="is_peak_city">True</field>
     </record>
-    <record id="city_dammam" model="res.city">
+    <record id="city_dammam" model="business.trip.city">
         <field name="name">Dammam</field>
         <field name="country_id" ref="base.sa"/>
         <field name="is_peak_city">True</field>
     </record>
-    <record id="city_khobar" model="res.city">
+    <record id="city_khobar" model="business.trip.city">
         <field name="name">Khobar</field>
         <field name="country_id" ref="base.sa"/>
     </record>
-    <record id="city_abha" model="res.city">
+    <record id="city_abha" model="business.trip.city">
         <field name="name">Abha</field>
         <field name="country_id" ref="base.sa"/>
         <field name="is_peak_city">True</field>
     </record>
-    <record id="city_taif" model="res.city">
+    <record id="city_taif" model="business.trip.city">
         <field name="name">Taif</field>
         <field name="country_id" ref="base.sa"/>
     </record>
-    <record id="city_jubail" model="res.city">
+    <record id="city_jubail" model="business.trip.city">
         <field name="name">Jubail</field>
         <field name="country_id" ref="base.sa"/>
     </record>
-    <record id="city_tabuk" model="res.city">
+    <record id="city_tabuk" model="business.trip.city">
         <field name="name">Tabuk</field>
         <field name="country_id" ref="base.sa"/>
     </record>
-    <record id="city_hail" model="res.city">
+    <record id="city_hail" model="business.trip.city">
         <field name="name">Hail</field>
         <field name="country_id" ref="base.sa"/>
     </record>
-    <record id="city_qassim" model="res.city">
+    <record id="city_qassim" model="business.trip.city">
         <field name="name">Qassim</field>
         <field name="country_id" ref="base.sa"/>
     </record>
-    <record id="city_yanbu" model="res.city">
+    <record id="city_yanbu" model="business.trip.city">
         <field name="name">Yanbu</field>
         <field name="country_id" ref="base.sa"/>
     </record>
-    <record id="city_najran" model="res.city">
+    <record id="city_najran" model="business.trip.city">
         <field name="name">Najran</field>
         <field name="country_id" ref="base.sa"/>
     </record>
-    <record id="city_neom" model="res.city">
+    <record id="city_neom" model="business.trip.city">
         <field name="name">NEOM</field>
         <field name="country_id" ref="base.sa"/>
         <field name="is_peak_city">True</field>
     </record>
-    <record id="city_al_kharj" model="res.city">
+    <record id="city_al_kharj" model="business.trip.city">
         <field name="name">Al-Kharj</field>
         <field name="country_id" ref="base.sa"/>
     </record>
 
     <!-- United Arab Emirates -->
-    <record id="city_dubai" model="res.city">
+    <record id="city_dubai" model="business.trip.city">
         <field name="name">Dubai</field>
         <field name="country_id" ref="base.ae"/>
     </record>
-    <record id="city_abu_dhabi" model="res.city">
+    <record id="city_abu_dhabi" model="business.trip.city">
         <field name="name">Abu Dhabi</field>
         <field name="country_id" ref="base.ae"/>
     </record>
-    <record id="city_sharjah" model="res.city">
+    <record id="city_sharjah" model="business.trip.city">
         <field name="name">Sharjah</field>
         <field name="country_id" ref="base.ae"/>
     </record>
 
     <!-- Other common destinations -->
-    <record id="city_cairo" model="res.city">
+    <record id="city_cairo" model="business.trip.city">
         <field name="name">Cairo</field>
         <field name="country_id" ref="base.eg"/>
     </record>
-    <record id="city_amman" model="res.city">
+    <record id="city_amman" model="business.trip.city">
         <field name="name">Amman</field>
         <field name="country_id" ref="base.jo"/>
     </record>
-    <record id="city_manama" model="res.city">
+    <record id="city_manama" model="business.trip.city">
         <field name="name">Manama</field>
         <field name="country_id" ref="base.bh"/>
     </record>
-    <record id="city_doha" model="res.city">
+    <record id="city_doha" model="business.trip.city">
         <field name="name">Doha</field>
         <field name="country_id" ref="base.qa"/>
     </record>
-    <record id="city_kuwait_city" model="res.city">
+    <record id="city_kuwait_city" model="business.trip.city">
         <field name="name">Kuwait City</field>
         <field name="country_id" ref="base.kw"/>
     </record>
-    <record id="city_muscat" model="res.city">
+    <record id="city_muscat" model="business.trip.city">
         <field name="name">Muscat</field>
         <field name="country_id" ref="base.om"/>
     </record>
-    <record id="city_london" model="res.city">
+    <record id="city_london" model="business.trip.city">
         <field name="name">London</field>
         <field name="country_id" ref="base.uk"/>
     </record>
-    <record id="city_paris" model="res.city">
+    <record id="city_paris" model="business.trip.city">
         <field name="name">Paris</field>
         <field name="country_id" ref="base.fr"/>
     </record>
-    <record id="city_tokyo" model="res.city">
+    <record id="city_tokyo" model="business.trip.city">
         <field name="name">Tokyo</field>
         <field name="country_id" ref="base.jp"/>
     </record>
-    <record id="city_singapore" model="res.city">
+    <record id="city_singapore" model="business.trip.city">
         <field name="name">Singapore</field>
         <field name="country_id" ref="base.sg"/>
     </record>
-    <record id="city_kuala_lumpur" model="res.city">
+    <record id="city_kuala_lumpur" model="business.trip.city">
         <field name="name">Kuala Lumpur</field>
         <field name="country_id" ref="base.my"/>
     </record>
-    <record id="city_new_york" model="res.city">
+    <record id="city_new_york" model="business.trip.city">
         <field name="name">New York</field>
         <field name="country_id" ref="base.us"/>
     </record>

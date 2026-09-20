@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_res_city_tree_business_trip" model="ir.ui.view">
-        <field name="name">res.city.tree.business.trip</field>
-        <field name="model">res.city</field>
+    <record id="view_business_trip_city_tree" model="ir.ui.view">
+        <field name="name">business.trip.city.tree</field>
+        <field name="model">business.trip.city</field>
         <field name="arch" type="xml">
             <tree editable="bottom">
                 <field name="name"/>
@@ -14,16 +14,11 @@
 
     <record id="action_business_trip_city" model="ir.actions.act_window">
         <field name="name">Cities</field>
-        <field name="res_model">res.city</field>
+        <field name="res_model">business.trip.city</field>
         <field name="view_mode">tree</field>
-        <field name="view_id" ref="view_res_city_tree_business_trip"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Add a destination city and mark it as a Peak Period city if applicable.
-            </p>
-            <p>
-                This is Odoo's standard City list (the same one used on address
-                forms) with a Business Trip specific "Peak Period City" flag added.
             </p>
         </field>
     </record>
