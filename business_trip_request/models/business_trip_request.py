@@ -71,7 +71,7 @@ class BusinessTripRequest(models.Model):
     # ---------------------------------------------------------------
     destination_country_id = fields.Many2one("res.country", required=True)
     destination_city_id = fields.Many2one(
-        "business.trip.city",
+        "res.city",
         string="Assignment Location (City)",
         required=True,
         domain="[('country_id', '=', destination_country_id)]",

@@ -226,7 +226,7 @@ class BusinessTripPortal(CustomerPortal):
         values = {
             "employee": employee,
             "countries": request.env["res.country"].sudo().search([]),
-            "cities": request.env["business.trip.city"].sudo().search([]),
+            "cities": request.env["res.city"].sudo().search([]),
             "error": error,
             "formdata": kw,
             "page_name": "business_trip_new",
