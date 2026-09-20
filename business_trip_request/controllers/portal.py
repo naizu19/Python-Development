@@ -63,6 +63,33 @@ class BusinessTripPortal(CustomerPortal):
             "rejected": {"label": _("Rejected"), "domain": [("state", "=", "rejected")]},
         }
 
+    def _btr_get_state_badge(self):
+        return {
+            "draft": "secondary",
+            "returned": "warning",
+            "pending_direct_manager": "warning",
+            "pending_department_manager": "warning",
+            "pending_ceo": "warning",
+            "approved": "info",
+            "hr_review": "info",
+            "allowance_calculated": "info",
+            "ready_for_travel": "primary",
+            "trip_in_progress": "primary",
+            "trip_report_required": "warning",
+            "trip_report_under_approval": "warning",
+            "settlement": "info",
+            "completed": "success",
+            "rejected": "danger",
+        }
+
+    def _btr_get_approval_badge(self):
+        return {
+            "pending": "secondary",
+            "approved": "success",
+            "rejected": "danger",
+            "returned": "warning",
+        }
+
     def _btr_check_access(self, request_id):
         trip = request.env["business.trip.request"].sudo().browse(request_id)
         if not trip.exists():
@@ -149,9 +176,31 @@ class BusinessTripPortal(CustomerPortal):
             domain, order=order, limit=self._items_per_page, offset=pager["offset"]
         )
 
+        base_domain = [("employee_id", "=", employee.id)] if employee else [("id", "=", 0)]
+        stats = {
+            "total": business_trip.search_count(base_domain),
+            "draft": business_trip.search_count(
+                base_domain + searchbar_filters["draft"]["domain"]
+            ),
+            "pending": business_trip.search_count(
+                base_domain + searchbar_filters["pending"]["domain"]
+            ),
+            "in_progress": business_trip.search_count(
+                base_domain + searchbar_filters["in_progress"]["domain"]
+            ),
+            "completed": business_trip.search_count(
+                base_domain + searchbar_filters["completed"]["domain"]
+            ),
+            "rejected": business_trip.search_count(
+                base_domain + searchbar_filters["rejected"]["domain"]
+            ),
+        }
+
         values.update(
             {
                 "trips": trips,
+                "stats": stats,
+                "state_badge": self._btr_get_state_badge(),
                 "page_name": "business_trip",
                 "pager": pager,
                 "default_url": "/my/business-trips",
@@ -205,6 +254,8 @@ class BusinessTripPortal(CustomerPortal):
         trip = self._btr_check_access(request_id)
         values = {
             "trip": trip,
+            "state_badge": self._btr_get_state_badge(),
+            "approval_badge": self._btr_get_approval_badge(),
             "page_name": "business_trip",
             "error": kw.get("error"),
         }

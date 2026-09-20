@@ -39,7 +39,7 @@
                             class="btn-primary" groups="business_trip_request.group_business_trip_finance"
                             invisible="state != 'settlement'"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,pending_direct_manager,pending_department_manager,pending_ceo,hr_review,allowance_calculated,ready_for_travel,trip_in_progress,trip_report_required,trip_report_under_approval,settlement,completed"/>
+                           statusbar_visible="draft,pending_direct_manager,hr_review,ready_for_travel,completed"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -220,6 +220,74 @@
         </field>
     </record>
 
+    <record id="view_business_trip_request_kanban" model="ir.ui.view">
+        <field name="name">business.trip.request.kanban</field>
+        <field name="model">business.trip.request</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" quick_create="false" class="o_kanban_small_column">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="destination_city"/>
+                <field name="trip_type"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="net_allowance"/>
+                <field name="currency_id"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_top">
+                                    <strong><field name="name"/></strong>
+                                    <span t-if="record.trip_type.raw_value == 'international'"
+                                          class="float-end badge text-bg-info">International</span>
+                                    <span t-if="record.trip_type.raw_value == 'domestic'"
+                                          class="float-end badge text-bg-secondary">Domestic</span>
+                                </div>
+                                <div class="mt-1">
+                                    <field name="employee_id" widget="many2one_avatar_employee"/>
+                                </div>
+                                <div class="text-muted">
+                                    <field name="destination_city"/>
+                                </div>
+                                <div class="text-muted">
+                                    <field name="date_start"/> → <field name="date_end"/>
+                                </div>
+                                <div class="mt-1">
+                                    <strong><field name="net_allowance" widget="monetary"/></strong>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_business_trip_request_pivot" model="ir.ui.view">
+        <field name="name">business.trip.request.pivot</field>
+        <field name="model">business.trip.request</field>
+        <field name="arch" type="xml">
+            <pivot string="Business Trip Requests">
+                <field name="state" type="row"/>
+                <field name="trip_type" type="col"/>
+                <field name="net_allowance" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_business_trip_request_graph" model="ir.ui.view">
+        <field name="name">business.trip.request.graph</field>
+        <field name="model">business.trip.request</field>
+        <field name="arch" type="xml">
+            <graph string="Business Trip Requests" type="bar">
+                <field name="state"/>
+                <field name="net_allowance" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
     <record id="view_business_trip_request_search" model="ir.ui.view">
         <field name="name">business.trip.request.search</field>
         <field name="model">business.trip.request</field>
@@ -253,7 +321,7 @@
     <record id="action_business_trip_request" model="ir.actions.act_window">
         <field name="name">Business Trip / Assignment Requests</field>
         <field name="res_model">business.trip.request</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">kanban,tree,form</field>
         <field name="context">{'search_default_my_requests': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -265,6 +333,6 @@
     <record id="action_business_trip_request_hr" model="ir.actions.act_window">
         <field name="name">All Business Trip Requests (HR)</field>
         <field name="res_model">business.trip.request</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">kanban,tree,form,pivot,graph</field>
     </record>
 </odoo>
