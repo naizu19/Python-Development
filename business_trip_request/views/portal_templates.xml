@@ -15,399 +15,451 @@
     <template id="portal_my_business_trips" name="My Business Trip Requests">
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs_searchbar" t-value="True"/>
-            <t t-call="portal.portal_searchbar">
-                <t t-set="title">Business Trips</t>
-            </t>
+            <div class="btr-page">
+                <t t-call="portal.portal_searchbar">
+                    <t t-set="title">Business Trips</t>
+                </t>
 
-            <div class="row g-2 mb-4">
-                <div class="col-6 col-md-2">
-                    <a href="/my/business-trips" class="card text-decoration-none h-100 border-0 shadow-sm">
-                        <div class="card-body text-center py-3">
-                            <div class="fs-4 fw-bold text-body"><t t-esc="stats.get('total', 0)"/></div>
-                            <div class="text-muted small">Total Requests</div>
-                        </div>
+                <div class="row g-2 mb-4">
+                    <div class="col-6 col-md-2">
+                        <a href="/my/business-trips" class="card btr-stat-card text-decoration-none h-100">
+                            <div class="card-body text-center py-3">
+                                <div class="btr-stat-value text-body"><t t-esc="stats.get('total', 0)"/></div>
+                                <div class="btr-stat-label">Total</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <a href="/my/business-trips?filterby=draft" class="card btr-stat-card text-decoration-none h-100">
+                            <div class="card-body text-center py-3">
+                                <div class="btr-stat-value text-secondary"><t t-esc="stats.get('draft', 0)"/></div>
+                                <div class="btr-stat-label">Draft</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <a href="/my/business-trips?filterby=pending" class="card btr-stat-card text-decoration-none h-100">
+                            <div class="card-body text-center py-3">
+                                <div class="btr-stat-value" style="color: var(--btr-accent);"><t t-esc="stats.get('pending', 0)"/></div>
+                                <div class="btr-stat-label">Pending Approval</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <a href="/my/business-trips?filterby=in_progress" class="card btr-stat-card text-decoration-none h-100">
+                            <div class="card-body text-center py-3">
+                                <div class="btr-stat-value text-primary"><t t-esc="stats.get('in_progress', 0)"/></div>
+                                <div class="btr-stat-label">In Progress</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <a href="/my/business-trips?filterby=completed" class="card btr-stat-card text-decoration-none h-100">
+                            <div class="card-body text-center py-3">
+                                <div class="btr-stat-value text-success"><t t-esc="stats.get('completed', 0)"/></div>
+                                <div class="btr-stat-label">Completed</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <a href="/my/business-trips?filterby=rejected" class="card btr-stat-card text-decoration-none h-100">
+                            <div class="card-body text-center py-3">
+                                <div class="btr-stat-value text-danger"><t t-esc="stats.get('rejected', 0)"/></div>
+                                <div class="btr-stat-label">Rejected</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">My Requests</h5>
+                    <a href="/my/business-trips/new" class="btn btn-primary">
+                        <i class="fa fa-plus me-1"/> New Business Trip / Assignment Request
                     </a>
                 </div>
-                <div class="col-6 col-md-2">
-                    <a href="/my/business-trips?filterby=draft" class="card text-decoration-none h-100 border-0 shadow-sm">
-                        <div class="card-body text-center py-3">
-                            <div class="fs-4 fw-bold text-secondary"><t t-esc="stats.get('draft', 0)"/></div>
-                            <div class="text-muted small">Draft</div>
+
+                <t t-if="not trips">
+                    <p class="alert alert-info">There are no business trip requests for this filter yet.</p>
+                </t>
+                <t t-if="trips">
+                    <div class="btr-card">
+                        <div class="table-responsive">
+                            <table class="table table-hover o_portal_my_doc_table align-middle mb-0">
+                                <thead>
+                                    <tr class="active">
+                                        <th>Request No.</th>
+                                        <th>Destination</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Net Allowance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="trips" t-as="trip">
+                                        <td>
+                                            <a t-attf-href="/my/business-trips/#{trip.id}">
+                                                <t t-esc="trip.name"/>
+                                            </a>
+                                        </td>
+                                        <td><t t-esc="trip.destination_city_id.name"/></td>
+                                        <td><t t-esc="trip.date_start"/></td>
+                                        <td><t t-esc="trip.date_end"/></td>
+                                        <td>
+                                            <span t-attf-class="badge text-bg-#{state_badge.get(trip.state, 'secondary')}"
+                                                  t-esc="dict(trip._fields['state'].selection).get(trip.state)"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <t t-esc="trip.net_allowance" t-options="{'widget': 'monetary', 'display_currency': trip.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                    </a>
-                </div>
-                <div class="col-6 col-md-2">
-                    <a href="/my/business-trips?filterby=pending" class="card text-decoration-none h-100 border-0 shadow-sm">
-                        <div class="card-body text-center py-3">
-                            <div class="fs-4 fw-bold text-warning"><t t-esc="stats.get('pending', 0)"/></div>
-                            <div class="text-muted small">Pending Approval</div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-6 col-md-2">
-                    <a href="/my/business-trips?filterby=in_progress" class="card text-decoration-none h-100 border-0 shadow-sm">
-                        <div class="card-body text-center py-3">
-                            <div class="fs-4 fw-bold text-primary"><t t-esc="stats.get('in_progress', 0)"/></div>
-                            <div class="text-muted small">In Progress</div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-6 col-md-2">
-                    <a href="/my/business-trips?filterby=completed" class="card text-decoration-none h-100 border-0 shadow-sm">
-                        <div class="card-body text-center py-3">
-                            <div class="fs-4 fw-bold text-success"><t t-esc="stats.get('completed', 0)"/></div>
-                            <div class="text-muted small">Completed</div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-6 col-md-2">
-                    <a href="/my/business-trips?filterby=rejected" class="card text-decoration-none h-100 border-0 shadow-sm">
-                        <div class="card-body text-center py-3">
-                            <div class="fs-4 fw-bold text-danger"><t t-esc="stats.get('rejected', 0)"/></div>
-                            <div class="text-muted small">Rejected</div>
-                        </div>
-                    </a>
-                </div>
+                    </div>
+                    <div class="mt-3">
+                        <t t-call="portal.pager"/>
+                    </div>
+                </t>
             </div>
-
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">My Requests</h5>
-                <a href="/my/business-trips/new" class="btn btn-primary">
-                    <i class="fa fa-plus me-1"/> New Business Trip / Assignment Request
-                </a>
-            </div>
-
-            <t t-if="not trips">
-                <p class="alert alert-info">There are no business trip requests for this filter yet.</p>
-            </t>
-            <t t-if="trips">
-                <div class="table-responsive">
-                    <table class="table table-hover o_portal_my_doc_table align-middle">
-                        <thead>
-                            <tr class="active">
-                                <th>Request No.</th>
-                                <th>Destination</th>
-                                <th>Start Date</th>
-                                <th>End Date</th>
-                                <th>Status</th>
-                                <th class="text-end">Net Allowance</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr t-foreach="trips" t-as="trip">
-                                <td>
-                                    <a t-attf-href="/my/business-trips/#{trip.id}">
-                                        <t t-esc="trip.name"/>
-                                    </a>
-                                </td>
-                                <td><t t-esc="trip.destination_city"/></td>
-                                <td><t t-esc="trip.date_start"/></td>
-                                <td><t t-esc="trip.date_end"/></td>
-                                <td>
-                                    <span t-attf-class="badge text-bg-#{state_badge.get(trip.state, 'secondary')}"
-                                          t-esc="dict(trip._fields['state'].selection).get(trip.state)"/>
-                                </td>
-                                <td class="text-end">
-                                    <t t-esc="trip.net_allowance" t-options="{'widget': 'monetary', 'display_currency': trip.currency_id}"/>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <t t-call="portal.pager"/>
-            </t>
         </t>
     </template>
 
     <template id="portal_business_trip_form" name="New Business Trip Request">
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs_searchbar" t-value="False"/>
-            <div class="clearfix mb-3">
-                <ol class="breadcrumb float-start">
-                    <li class="breadcrumb-item"><a href="/my/business-trips">Business Trips</a></li>
-                    <li class="breadcrumb-item active">New Request</li>
-                </ol>
+            <div class="btr-page">
+                <div class="clearfix mb-3">
+                    <ol class="breadcrumb float-start">
+                        <li class="breadcrumb-item"><a href="/my/business-trips">Business Trips</a></li>
+                        <li class="breadcrumb-item active">New Request</li>
+                    </ol>
+                </div>
+                <div t-if="error and error.get('general')" class="alert alert-danger">
+                    <t t-esc="error.get('general')"/>
+                </div>
+                <form action="/my/business-trips/new" method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                    <div class="card btr-form-card mb-3">
+                        <div class="card-header">Employee Information</div>
+                        <div class="card-body row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Employee</label>
+                                <input type="text" class="form-control" readonly="readonly"
+                                       t-att-value="employee.name"/>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Job Title</label>
+                                <input type="text" class="form-control" readonly="readonly"
+                                       t-att-value="employee.job_title"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card btr-form-card mb-3">
+                        <div class="card-header">Business Trip Information</div>
+                        <div class="card-body row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Country *</label>
+                                <select name="destination_country_id" id="btr_country_select"
+                                        class="form-select" required="required" onchange="btrFilterCities()">
+                                    <option value="">-</option>
+                                    <t t-foreach="countries" t-as="country">
+                                        <option t-att-value="country.id"
+                                                t-att-selected="formdata.get('destination_country_id') == str(country.id) or None">
+                                            <t t-esc="country.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Assignment Location (City) *</label>
+                                <select name="destination_city_id" id="btr_city_select"
+                                        class="form-select" required="required">
+                                    <option value="">-</option>
+                                    <t t-foreach="cities" t-as="city">
+                                        <option t-att-value="city.id" t-att-data-country="city.country_id.id"
+                                                t-att-selected="formdata.get('destination_city_id') == str(city.id) or None">
+                                            <t t-esc="city.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                                <div class="form-text">Select a country first to narrow this list.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Total Travel Distance (km, domestic only)</label>
+                                <input type="number" step="0.1" name="distance_km" class="form-control"
+                                       t-att-value="formdata.get('distance_km')"/>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Flight Duration (hours, international only)</label>
+                                <input type="number" step="0.1" name="flight_duration_hours" class="form-control"
+                                       t-att-value="formdata.get('flight_duration_hours')"/>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Assignment Purpose *</label>
+                                <textarea name="purpose" class="form-control" rows="2" required="required">
+                                    <t t-esc="formdata.get('purpose')"/>
+                                </textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Business Trip Objectives *</label>
+                                <textarea name="objectives" class="form-control" rows="2" required="required">
+                                    <t t-esc="formdata.get('objectives')"/>
+                                </textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card btr-form-card mb-3">
+                        <div class="card-header">Trip Dates</div>
+                        <div class="card-body row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Start Date *</label>
+                                <input type="date" name="date_start" class="form-control" required="required"
+                                       t-att-value="formdata.get('date_start')"/>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">End Date *</label>
+                                <input type="date" name="date_end" class="form-control" required="required"
+                                       t-att-value="formdata.get('date_end')"/>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="overnight_stay" value="1"/>
+                                    <label class="form-check-label">Overnight Stay Required</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card btr-form-card mb-3">
+                        <div class="card-header">Travel &amp; Support Requirements</div>
+                        <div class="card-body row g-3">
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="need_flight" value="1"/>
+                                    <label class="form-check-label">Flight Ticket Booking</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="need_transportation" value="1"/>
+                                    <label class="form-check-label">Transportation / Rental Car</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="need_visa" value="1"/>
+                                    <label class="form-check-label">Exit/Re-entry Visa</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="need_other" value="1"/>
+                                    <label class="form-check-label">Other</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Please Specify (if Other)</label>
+                                <input type="text" name="other_specify" class="form-control"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card btr-form-card mb-3">
+                        <div class="card-header">Cash Advance</div>
+                        <div class="card-body row g-3">
+                            <div class="col-md-3 d-flex align-items-center">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="advance_required" value="1"/>
+                                    <label class="form-check-label">Advance Required?</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Requested Advance</label>
+                                <input type="number" step="0.01" name="requested_advance" class="form-control"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" name="save_draft" class="btn btn-outline-secondary">
+                            <i class="fa fa-file-text-o me-1"/> Save as Draft
+                        </button>
+                        <button type="submit" name="submit_now" value="1" class="btn btn-primary">
+                            <i class="fa fa-paper-plane me-1"/> Save &amp; Submit for Approval
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div t-if="error and error.get('general')" class="alert alert-danger">
-                <t t-esc="error.get('general')"/>
-            </div>
-            <form action="/my/business-trips/new" method="post">
-                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-
-                <div class="card mb-3 shadow-sm">
-                    <div class="card-header bg-light"><strong>Employee Information</strong></div>
-                    <div class="card-body row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Employee</label>
-                            <input type="text" class="form-control" readonly="readonly"
-                                   t-att-value="employee.name"/>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Job Title</label>
-                            <input type="text" class="form-control" readonly="readonly"
-                                   t-att-value="employee.job_title"/>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card mb-3 shadow-sm">
-                    <div class="card-header bg-light"><strong>Business Trip Information</strong></div>
-                    <div class="card-body row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Assignment Location (City) *</label>
-                            <input type="text" name="destination_city" class="form-control" required="required"
-                                   t-att-value="formdata.get('destination_city')"/>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Country *</label>
-                            <select name="destination_country_id" class="form-select" required="required">
-                                <option value="">-</option>
-                                <t t-foreach="countries" t-as="country">
-                                    <option t-att-value="country.id"
-                                            t-att-selected="formdata.get('destination_country_id') == str(country.id) or None">
-                                        <t t-esc="country.name"/>
-                                    </option>
-                                </t>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Total Travel Distance (km, domestic only)</label>
-                            <input type="number" step="0.1" name="distance_km" class="form-control"
-                                   t-att-value="formdata.get('distance_km')"/>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Flight Duration (hours, international only)</label>
-                            <input type="number" step="0.1" name="flight_duration_hours" class="form-control"
-                                   t-att-value="formdata.get('flight_duration_hours')"/>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Assignment Purpose *</label>
-                            <textarea name="purpose" class="form-control" rows="2" required="required">
-                                <t t-esc="formdata.get('purpose')"/>
-                            </textarea>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Business Trip Objectives *</label>
-                            <textarea name="objectives" class="form-control" rows="2" required="required">
-                                <t t-esc="formdata.get('objectives')"/>
-                            </textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card mb-3 shadow-sm">
-                    <div class="card-header bg-light"><strong>Trip Dates</strong></div>
-                    <div class="card-body row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Start Date *</label>
-                            <input type="date" name="date_start" class="form-control" required="required"
-                                   t-att-value="formdata.get('date_start')"/>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">End Date *</label>
-                            <input type="date" name="date_end" class="form-control" required="required"
-                                   t-att-value="formdata.get('date_end')"/>
-                        </div>
-                        <div class="col-md-4 d-flex align-items-end">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" name="overnight_stay" value="1"/>
-                                <label class="form-check-label">Overnight Stay Required</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card mb-3 shadow-sm">
-                    <div class="card-header bg-light"><strong>Travel &amp; Support Requirements</strong></div>
-                    <div class="card-body row g-3">
-                        <div class="col-md-3">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" name="need_flight" value="1"/>
-                                <label class="form-check-label">Flight Ticket Booking</label>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" name="need_transportation" value="1"/>
-                                <label class="form-check-label">Transportation / Rental Car</label>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" name="need_visa" value="1"/>
-                                <label class="form-check-label">Exit/Re-entry Visa</label>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" name="need_other" value="1"/>
-                                <label class="form-check-label">Other</label>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Please Specify (if Other)</label>
-                            <input type="text" name="other_specify" class="form-control"/>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card mb-3 shadow-sm">
-                    <div class="card-header bg-light"><strong>Cash Advance</strong></div>
-                    <div class="card-body row g-3">
-                        <div class="col-md-3 d-flex align-items-center">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" name="advance_required" value="1"/>
-                                <label class="form-check-label">Advance Required?</label>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Requested Advance</label>
-                            <input type="number" step="0.01" name="requested_advance" class="form-control"/>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-flex gap-2">
-                    <button type="submit" name="save_draft" class="btn btn-outline-secondary">
-                        <i class="fa fa-file-text-o me-1"/> Save as Draft
-                    </button>
-                    <button type="submit" name="submit_now" value="1" class="btn btn-primary">
-                        <i class="fa fa-paper-plane me-1"/> Save &amp; Submit for Approval
-                    </button>
-                </div>
-            </form>
+            <script>
+                function btrFilterCities() {
+                    var countrySelect = document.getElementById('btr_country_select');
+                    var citySelect = document.getElementById('btr_city_select');
+                    if (!countrySelect || !citySelect) { return; }
+                    var countryId = countrySelect.value;
+                    var options = citySelect.querySelectorAll('option[data-country]');
+                    var hasVisibleSelected = false;
+                    options.forEach(function (opt) {
+                        var match = countryId &amp;&amp; opt.getAttribute('data-country') === countryId;
+                        opt.hidden = !match;
+                        opt.disabled = !match;
+                        if (match &amp;&amp; opt.selected) { hasVisibleSelected = true; }
+                    });
+                    if (!hasVisibleSelected) { citySelect.value = ''; }
+                }
+                document.addEventListener('DOMContentLoaded', btrFilterCities);
+            </script>
         </t>
     </template>
 
     <template id="portal_business_trip_detail" name="Business Trip Request Detail">
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs_searchbar" t-value="False"/>
-            <div class="clearfix mb-3">
-                <ol class="breadcrumb float-start">
-                    <li class="breadcrumb-item"><a href="/my/business-trips">Business Trips</a></li>
-                    <li class="breadcrumb-item active"><t t-esc="trip.name"/></li>
-                </ol>
-            </div>
+            <div class="btr-page">
+                <div class="clearfix mb-3">
+                    <ol class="breadcrumb float-start">
+                        <li class="breadcrumb-item"><a href="/my/business-trips">Business Trips</a></li>
+                        <li class="breadcrumb-item active"><t t-esc="trip.name"/></li>
+                    </ol>
+                </div>
 
-            <div t-if="error" class="alert alert-danger"><t t-esc="error"/></div>
+                <div t-if="error" class="alert alert-danger"><t t-esc="error"/></div>
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="mb-0"><t t-esc="trip.name"/></h3>
-                <span t-attf-class="badge fs-6 text-bg-#{state_badge.get(trip.state, 'secondary')}"
-                      t-esc="dict(trip._fields['state'].selection).get(trip.state)"/>
-            </div>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0"><t t-esc="trip.name"/></h3>
+                    <span t-attf-class="badge fs-6 text-bg-#{state_badge.get(trip.state, 'secondary')}"
+                          t-esc="dict(trip._fields['state'].selection).get(trip.state)"/>
+                </div>
 
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card mb-3 shadow-sm">
-                        <div class="card-header bg-light"><strong>Trip Information</strong></div>
-                        <div class="card-body">
-                            <table class="table table-sm mb-3">
-                                <tr><td class="text-muted">Destination</td><td>
-                                    <t t-esc="trip.destination_city"/>, <t t-esc="trip.destination_country_id.name"/>
-                                </td></tr>
-                                <tr><td class="text-muted">Type</td><td><t t-esc="trip.trip_type"/></td></tr>
-                                <tr><td class="text-muted">Start Date</td><td><t t-esc="trip.date_start"/></td></tr>
-                                <tr><td class="text-muted">End Date</td><td><t t-esc="trip.date_end"/></td></tr>
-                                <tr><td class="text-muted">Total Days</td><td><t t-esc="trip.total_days"/></td></tr>
-                                <tr><td class="text-muted">Overnight Stay</td><td><t t-esc="'Yes' if trip.overnight_stay else 'No'"/></td></tr>
-                                <tr><td class="text-muted">Formal Assignment</td><td><t t-esc="'Yes' if trip.is_formal_assignment else 'No'"/></td></tr>
-                            </table>
-                            <p><strong>Purpose</strong><br/><t t-esc="trip.purpose"/></p>
-                            <p><strong>Objectives</strong><br/><t t-esc="trip.objectives"/></p>
-                            <div t-if="trip.validation_warning_ids" class="alert alert-info mb-0" style="white-space: pre-line;">
-                                <t t-esc="trip.validation_warning_ids"/>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="btr-card mb-3">
+                            <div class="btr-card-header">Trip Information</div>
+                            <div class="btr-card-body">
+                                <table class="table table-sm mb-3">
+                                    <tr><td class="text-muted">Destination</td><td>
+                                        <t t-esc="trip.destination_city_id.name"/>, <t t-esc="trip.destination_country_id.name"/>
+                                    </td></tr>
+                                    <tr><td class="text-muted">Type</td><td><t t-esc="trip.trip_type"/></td></tr>
+                                    <tr><td class="text-muted">Start Date</td><td><t t-esc="trip.date_start"/></td></tr>
+                                    <tr><td class="text-muted">End Date</td><td><t t-esc="trip.date_end"/></td></tr>
+                                    <tr><td class="text-muted">Total Days</td><td><t t-esc="trip.total_days"/></td></tr>
+                                    <tr><td class="text-muted">Overnight Stay</td><td><t t-esc="'Yes' if trip.overnight_stay else 'No'"/></td></tr>
+                                    <tr><td class="text-muted">Formal Assignment</td><td><t t-esc="'Yes' if trip.is_formal_assignment else 'No'"/></td></tr>
+                                </table>
+                                <p><strong>Purpose</strong><br/><t t-esc="trip.purpose"/></p>
+                                <p><strong>Objectives</strong><br/><t t-esc="trip.objectives"/></p>
+                                <div t-if="trip.validation_warning_ids" class="alert alert-info mb-0" style="white-space: pre-line;">
+                                    <t t-esc="trip.validation_warning_ids"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="btr-card mb-3">
+                            <div class="btr-card-header">Approval History</div>
+                            <div class="btr-card-body">
+                                <ul class="btr-timeline">
+                                    <li class="btr-timeline-item" t-foreach="trip.approval_line_ids" t-as="line">
+                                        <span t-attf-class="btr-timeline-marker bg-#{approval_badge.get(line.state, 'secondary')}">
+                                            <i t-if="line.state == 'approved'" class="fa fa-check"/>
+                                            <i t-if="line.state == 'rejected'" class="fa fa-times"/>
+                                            <i t-if="line.state == 'returned'" class="fa fa-undo"/>
+                                            <i t-if="line.state == 'pending'" class="fa fa-clock-o"/>
+                                        </span>
+                                        <div class="btr-timeline-content">
+                                            <div class="d-flex justify-content-between">
+                                                <strong><t t-esc="line.name"/></strong>
+                                                <span t-attf-class="badge text-bg-#{approval_badge.get(line.state, 'secondary')}"
+                                                      t-esc="line.state"/>
+                                            </div>
+                                            <div class="text-muted small" t-if="line.approver_id">
+                                                Approver: <t t-esc="line.approver_id.name"/>
+                                            </div>
+                                            <div class="text-muted small" t-if="line.approver_group_id">
+                                                Any member of: <t t-esc="line.approver_group_id.name"/>
+                                            </div>
+                                            <div class="text-muted small" t-if="line.approved_by">
+                                                Actioned by <t t-esc="line.approved_by.name"/>
+                                                <t t-if="line.date">on <t t-esc="line.date"/></t>
+                                            </div>
+                                            <div t-if="line.comment" class="small mt-1"><t t-esc="line.comment"/></div>
+                                        </div>
+                                    </li>
+                                </ul>
+                                <p t-if="trip.state == 'rejected'" class="mb-0 mt-2"><strong>Rejection Reason:</strong> <t t-esc="trip.rejection_reason"/></p>
+                                <p t-if="trip.state == 'returned'" class="mb-0 mt-2"><strong>Return Comment:</strong> <t t-esc="trip.return_comment"/></p>
+                            </div>
+                        </div>
+
+                        <div t-if="trip.state in ('allowance_calculated', 'ready_for_travel', 'trip_in_progress', 'trip_report_required', 'trip_report_under_approval', 'settlement', 'completed')"
+                             class="btr-card mb-3">
+                            <div class="btr-card-header">Allowance</div>
+                            <div class="btr-card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">Net Allowance</span>
+                                    <span class="fs-4 fw-bold text-success">
+                                        <t t-esc="trip.net_allowance" t-options="{'widget': 'monetary', 'display_currency': trip.currency_id}"/>
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="card mb-3 shadow-sm">
-                        <div class="card-header bg-light"><strong>Approval History</strong></div>
-                        <div class="card-body">
-                            <table class="table table-sm mb-2">
-                                <thead><tr><th>Step</th><th>Approver</th><th>Status</th><th>Date</th></tr></thead>
-                                <tbody>
-                                    <tr t-foreach="trip.approval_line_ids" t-as="line">
-                                        <td><t t-esc="line.role"/></td>
-                                        <td><t t-esc="line.approver_id.name"/></td>
-                                        <td>
-                                            <span t-attf-class="badge text-bg-#{approval_badge.get(line.state, 'secondary')}"
-                                                  t-esc="line.state"/>
-                                        </td>
-                                        <td><t t-esc="line.date"/></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <p t-if="trip.state == 'rejected'" class="mb-0"><strong>Rejection Reason:</strong> <t t-esc="trip.rejection_reason"/></p>
-                            <p t-if="trip.state == 'returned'" class="mb-0"><strong>Return Comment:</strong> <t t-esc="trip.return_comment"/></p>
-                        </div>
-                    </div>
-
-                    <div t-if="trip.state in ('allowance_calculated', 'ready_for_travel', 'trip_in_progress', 'trip_report_required', 'trip_report_under_approval', 'settlement', 'completed')"
-                         class="card mb-3 shadow-sm">
-                        <div class="card-header bg-light"><strong>Allowance</strong></div>
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-muted">Net Allowance</span>
-                                <span class="fs-4 fw-bold text-success">
-                                    <t t-esc="trip.net_allowance" t-options="{'widget': 'monetary', 'display_currency': trip.currency_id}"/>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div t-if="trip.state in ('draft', 'returned')" class="card mb-3 shadow-sm">
-                <div class="card-body d-flex gap-2">
-                    <form t-if="trip.state == 'draft'" action="#" t-attf-action="/my/business-trips/#{trip.id}/submit" method="post">
-                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fa fa-paper-plane me-1"/> Submit for Approval
-                        </button>
-                    </form>
-                    <form t-if="trip.state == 'returned'" action="#" t-attf-action="/my/business-trips/#{trip.id}/resubmit" method="post">
-                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                        <button type="submit" class="btn btn-outline-secondary">
-                            <i class="fa fa-pencil me-1"/> Move Back to Draft
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <div t-if="trip.state == 'trip_report_required'" class="card mb-3 shadow-sm">
-                <div class="card-header bg-light"><strong>Business Trip Report</strong></div>
-                <div class="card-body">
-                    <form action="#" t-attf-action="/my/business-trips/#{trip.id}/report" method="post" class="row g-3">
-                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                        <div class="col-md-6">
-                            <label class="form-label">Actual Start Date *</label>
-                            <input type="date" name="actual_date_start" class="form-control" required="required"/>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Actual Return Date *</label>
-                            <input type="date" name="actual_date_end" class="form-control" required="required"/>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Summary of Work Performed *</label>
-                            <textarea name="work_summary" class="form-control" rows="3" required="required"/>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Objectives Achieved</label>
-                            <textarea name="objectives_achieved" class="form-control" rows="2"/>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Notes</label>
-                            <textarea name="report_notes" class="form-control" rows="2"/>
-                        </div>
-                        <div class="col-12">
+                <div t-if="trip.state in ('draft', 'returned')" class="btr-card mb-3">
+                    <div class="btr-card-body d-flex gap-2">
+                        <form t-if="trip.state == 'draft'" action="#" t-attf-action="/my/business-trips/#{trip.id}/submit" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fa fa-paper-plane me-1"/> Submit Trip Report
+                                <i class="fa fa-paper-plane me-1"/> Submit for Approval
                             </button>
-                        </div>
-                    </form>
+                        </form>
+                        <form t-if="trip.state == 'returned'" action="#" t-attf-action="/my/business-trips/#{trip.id}/resubmit" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <button type="submit" class="btn btn-outline-secondary">
+                                <i class="fa fa-pencil me-1"/> Move Back to Draft
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div t-if="trip.state == 'trip_report_required'" class="btr-card mb-3">
+                    <div class="btr-card-header">Business Trip Report</div>
+                    <div class="btr-card-body">
+                        <form action="#" t-attf-action="/my/business-trips/#{trip.id}/report" method="post" class="row g-3">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <div class="col-md-6">
+                                <label class="form-label">Actual Start Date *</label>
+                                <input type="date" name="actual_date_start" class="form-control" required="required"/>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Actual Return Date *</label>
+                                <input type="date" name="actual_date_end" class="form-control" required="required"/>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Summary of Work Performed *</label>
+                                <textarea name="work_summary" class="form-control" rows="3" required="required"/>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Objectives Achieved</label>
+                                <textarea name="objectives_achieved" class="form-control" rows="2"/>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Notes</label>
+                                <textarea name="report_notes" class="form-control" rows="2"/>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa fa-paper-plane me-1"/> Submit Trip Report
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </t>

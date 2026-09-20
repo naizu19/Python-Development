@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_business_trip_approval_step_tree" model="ir.ui.view">
+        <field name="name">business.trip.approval.step.tree</field>
+        <field name="model">business.trip.approval.step</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="source"/>
+                <field name="group_id" invisible="source != 'group'" required="source == 'group'"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_business_trip_approval_step" model="ir.actions.act_window">
+        <field name="name">Approval Steps</field>
+        <field name="res_model">business.trip.approval.step</field>
+        <field name="view_mode">tree</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define who approves a Business Trip Request, in order.
+            </p>
+            <p>
+                Each step can pull its approver from the employee's HR manager
+                relations, the configured CEO, or — recommended when your HR
+                hierarchy isn't fully set up — from any user you add to a
+                specific Group. Add, remove, or reorder steps freely; no code
+                change is ever needed.
+            </p>
+        </field>
+    </record>
+</odoo>

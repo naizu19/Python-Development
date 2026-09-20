@@ -12,11 +12,11 @@
                             invisible="state != 'returned'"/>
                     <button name="action_approve" string="Approve" type="object"
                             class="btn-primary"
-                            invisible="not can_current_user_approve or state not in ('pending_direct_manager','pending_department_manager','pending_ceo')"/>
+                            invisible="not can_current_user_approve or state != 'pending_approval'"/>
                     <button name="action_open_reject_wizard" string="Reject" type="object"
-                            invisible="not can_current_user_approve or state not in ('pending_direct_manager','pending_department_manager','pending_ceo')"/>
+                            invisible="not can_current_user_approve or state != 'pending_approval'"/>
                     <button name="action_open_return_wizard" string="Return for Modification" type="object"
-                            invisible="not can_current_user_approve or state not in ('pending_direct_manager','pending_department_manager','pending_ceo')"/>
+                            invisible="not can_current_user_approve or state != 'pending_approval'"/>
                     <button name="action_calculate_allowance" string="Calculate Allowance" type="object"
                             class="btn-primary" groups="business_trip_request.group_business_trip_hr"
                             invisible="state != 'hr_review'"/>
@@ -39,22 +39,23 @@
                             class="btn-primary" groups="business_trip_request.group_business_trip_finance"
                             invisible="state != 'settlement'"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,pending_direct_manager,hr_review,ready_for_travel,completed"/>
+                           statusbar_visible="draft,pending_approval,hr_review,ready_for_travel,completed"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
                         <h1><field name="name" readonly="1"/></h1>
+                        <div class="text-muted" invisible="not current_step_name or state not in ('pending_approval',)">
+                            Currently pending with: <field name="current_step_name" readonly="1" nolabel="1" class="oe_inline"/>
+                        </div>
                     </div>
                     <group>
                         <group string="Employee Information">
                             <field name="employee_id" readonly="state != 'draft'"/>
+                            <field name="employee_code" readonly="1"/>
                             <field name="job_title" readonly="1"/>
                             <field name="department_id" readonly="1"/>
                             <field name="company_id" readonly="1" groups="base.group_multi_company"/>
                             <field name="direct_manager_id" readonly="1"/>
-                            <field name="direct_manager_user_id" invisible="1"/>
-                            <field name="department_manager_user_id" invisible="1"/>
-                            <field name="ceo_user_id" invisible="1"/>
                             <field name="can_current_user_approve" invisible="1"/>
                         </group>
                         <group string="Flags">
@@ -74,8 +75,8 @@
                         <page string="Trip Information">
                             <group>
                                 <group>
-                                    <field name="destination_city"/>
                                     <field name="destination_country_id"/>
+                                    <field name="destination_city_id"/>
                                     <field name="trip_type" readonly="1"/>
                                     <field name="region" invisible="trip_type != 'international'"/>
                                     <field name="distance_km" invisible="trip_type != 'domestic'"/>
@@ -124,8 +125,10 @@
                                       decoration-danger="state == 'rejected'"
                                       decoration-warning="state == 'returned'">
                                     <field name="sequence"/>
-                                    <field name="role"/>
+                                    <field name="name"/>
                                     <field name="approver_id"/>
+                                    <field name="approver_group_id"/>
+                                    <field name="approved_by"/>
                                     <field name="state" widget="badge"/>
                                     <field name="date"/>
                                     <field name="comment"/>
@@ -156,12 +159,12 @@
                                     <field name="net_allowance" readonly="1"/>
                                 </group>
                             </group>
-                            <group string="Short Domestic Trip (&lt; 300km)" invisible="is_formal_assignment">
+                            <group string="Short Domestic Trip" invisible="is_formal_assignment">
                                 <field name="short_trip_daily_amount" readonly="1"/>
                                 <field name="accommodation_actual_cost"/>
                             </group>
                         </page>
-                        <page string="Trip Report" invisible="state in ('draft','submitted','pending_direct_manager','pending_department_manager','pending_ceo','approved','hr_review','allowance_calculated','ready_for_travel','trip_in_progress')">
+                        <page string="Trip Report" invisible="state in ('draft','pending_approval','hr_review','allowance_calculated','ready_for_travel','trip_in_progress')">
                             <group>
                                 <group>
                                     <field name="actual_date_start"/>
@@ -210,7 +213,7 @@
                   decoration-success="state == 'completed'">
                 <field name="name"/>
                 <field name="employee_id"/>
-                <field name="destination_city"/>
+                <field name="destination_city_id"/>
                 <field name="trip_type"/>
                 <field name="date_start"/>
                 <field name="date_end"/>
@@ -227,7 +230,7 @@
             <kanban default_group_by="state" quick_create="false" class="o_kanban_small_column">
                 <field name="name"/>
                 <field name="employee_id"/>
-                <field name="destination_city"/>
+                <field name="destination_city_id"/>
                 <field name="trip_type"/>
                 <field name="date_start"/>
                 <field name="date_end"/>
@@ -249,7 +252,7 @@
                                     <field name="employee_id" widget="many2one_avatar_employee"/>
                                 </div>
                                 <div class="text-muted">
-                                    <field name="destination_city"/>
+                                    <field name="destination_city_id"/>
                                 </div>
                                 <div class="text-muted">
                                     <field name="date_start"/> → <field name="date_end"/>
@@ -295,18 +298,17 @@
             <search>
                 <field name="name"/>
                 <field name="employee_id"/>
-                <field name="destination_city"/>
+                <field name="destination_city_id"/>
                 <filter string="My Requests" name="my_requests" domain="[('employee_id.user_id', '=', uid)]"/>
                 <filter string="Pending My Approval" name="pending_my_approval"
-                        domain="['|', '|', ('direct_manager_user_id', '=', uid), ('department_manager_user_id', '=', uid), ('ceo_user_id', '=', uid)]"/>
+                        domain="[('state', '=', 'pending_approval'), ('approval_line_ids.approver_id', '=', uid)]"/>
                 <separator/>
                 <filter string="Domestic" name="domestic" domain="[('trip_type', '=', 'domestic')]"/>
                 <filter string="International" name="international" domain="[('trip_type', '=', 'international')]"/>
                 <separator/>
                 <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
                 <filter string="Pending Approval" name="pending_approval"
-                        domain="[('state', 'in', ['pending_direct_manager', 'pending_department_manager', 'pending_ceo'])]"/>
-                <filter string="Approved" name="approved" domain="[('state', '=', 'approved')]"/>
+                        domain="[('state', '=', 'pending_approval')]"/>
                 <filter string="Completed" name="completed" domain="[('state', '=', 'completed')]"/>
                 <filter string="Rejected" name="rejected" domain="[('state', '=', 'rejected')]"/>
                 <group expand="0" string="Group By">

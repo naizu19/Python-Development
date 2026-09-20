@@ -34,11 +34,10 @@
         <field name="model_id" ref="model_business_trip_request"/>
         <field name="groups" eval="[(4, ref('group_business_trip_user'))]"/>
         <field name="domain_force">[
-            '|', '|', '|',
+            '|', '|',
             ('employee_id.user_id', '=', user.id),
-            ('direct_manager_user_id', '=', user.id),
-            ('department_manager_user_id', '=', user.id),
-            ('ceo_user_id', '=', user.id),
+            ('approval_line_ids.approver_id', '=', user.id),
+            ('approval_line_ids.approver_group_id', 'in', user.groups_id.ids),
         ]</field>
     </record>
 
@@ -70,9 +69,9 @@
         <field name="domain_force">[
             '|', '|', '|',
             ('request_id.employee_id.user_id', '=', user.id),
-            ('request_id.direct_manager_user_id', '=', user.id),
-            ('request_id.department_manager_user_id', '=', user.id),
-            ('request_id.ceo_user_id', '=', user.id),
+            ('approver_id', '=', user.id),
+            ('approver_group_id', 'in', user.groups_id.ids),
+            ('request_id.approval_line_ids.approver_group_id', 'in', user.groups_id.ids),
         ]</field>
     </record>
 

@@ -25,4 +25,12 @@
     <menuitem id="menu_business_trip_peak_period" name="Peak Periods"
               parent="menu_business_trip_configuration" action="action_business_trip_peak_period"
               sequence="20" groups="business_trip_request.group_business_trip_hr"/>
+
+    <menuitem id="menu_business_trip_city" name="Cities"
+              parent="menu_business_trip_configuration" action="action_business_trip_city"
+              sequence="30" groups="business_trip_request.group_business_trip_hr"/>
+
+    <menuitem id="menu_business_trip_approval_step" name="Approval Steps"
+              parent="menu_business_trip_configuration" action="action_business_trip_approval_step"
+              sequence="40" groups="business_trip_request.group_business_trip_hr"/>
 </odoo>

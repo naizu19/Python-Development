@@ -1,0 +1,153 @@
+/* Business Trip / Assignment Request - Portal design system */
+
+:root {
+    --btr-primary: #2c5f6f;
+    --btr-primary-dark: #1e4550;
+    --btr-accent: #d98e04;
+    --btr-surface: #ffffff;
+    --btr-surface-muted: #f7f9fa;
+    --btr-border: #e3e8ea;
+    --btr-radius: 0.65rem;
+}
+
+.btr-page h1, .btr-page h3, .btr-page h5 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+/* Stat cards */
+.btr-stat-card {
+    border: 1px solid var(--btr-border);
+    border-radius: var(--btr-radius);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    background: var(--btr-surface);
+}
+.btr-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1.25rem rgba(30, 69, 80, 0.12);
+    border-color: var(--btr-primary);
+}
+.btr-stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+.btr-stat-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6c757d;
+}
+
+/* Generic content cards */
+.btr-card {
+    border: 1px solid var(--btr-border);
+    border-radius: var(--btr-radius);
+    background: var(--btr-surface);
+    box-shadow: 0 0.125rem 0.5rem rgba(20, 40, 45, 0.05);
+    overflow: hidden;
+}
+.btr-card-header {
+    background: var(--btr-surface-muted);
+    border-bottom: 1px solid var(--btr-border);
+    padding: 0.85rem 1.25rem;
+    font-weight: 600;
+    color: var(--btr-primary-dark);
+}
+.btr-card-body {
+    padding: 1.25rem;
+}
+
+/* Buttons */
+.btr-page .btn-primary {
+    background-color: var(--btr-primary);
+    border-color: var(--btr-primary);
+}
+.btr-page .btn-primary:hover {
+    background-color: var(--btr-primary-dark);
+    border-color: var(--btr-primary-dark);
+}
+.btr-page .btn-outline-secondary {
+    border-color: var(--btr-border);
+    color: var(--btr-primary-dark);
+}
+.btr-page .btn-outline-secondary:hover {
+    background-color: var(--btr-surface-muted);
+    color: var(--btr-primary-dark);
+}
+
+/* Status badges */
+.btr-page .badge {
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 0.4em 0.75em;
+    border-radius: 0.5rem;
+}
+
+/* Table polish */
+.btr-page table.table thead th {
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    color: #6c757d;
+    border-bottom-width: 1px;
+}
+.btr-page table.table td, .btr-page table.table th {
+    vertical-align: middle;
+}
+
+/* Approval timeline */
+.btr-timeline {
+    position: relative;
+    list-style: none;
+    padding-left: 2.25rem;
+    margin: 0;
+}
+.btr-timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+.btr-timeline-item:last-child {
+    padding-bottom: 0;
+}
+.btr-timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: -1.7rem;
+    top: 1.9rem;
+    bottom: -0.25rem;
+    width: 2px;
+    background: var(--btr-border);
+}
+.btr-timeline-marker {
+    position: absolute;
+    left: -2.25rem;
+    top: 0;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.75rem;
+    box-shadow: 0 0 0 3px var(--btr-surface);
+}
+.btr-timeline-content {
+    background: var(--btr-surface-muted);
+    border: 1px solid var(--btr-border);
+    border-radius: 0.5rem;
+    padding: 0.65rem 0.9rem;
+}
+
+/* Form sections */
+.btr-page .card.btr-form-card {
+    border: 1px solid var(--btr-border);
+    border-radius: var(--btr-radius);
+    box-shadow: 0 0.125rem 0.5rem rgba(20, 40, 45, 0.05);
+}
+.btr-page .card.btr-form-card .card-header {
+    background: var(--btr-surface-muted);
+    color: var(--btr-primary-dark);
+    font-weight: 600;
+    border-bottom: 1px solid var(--btr-border);
+}

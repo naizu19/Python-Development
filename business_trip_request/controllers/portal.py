@@ -28,18 +28,7 @@ class BusinessTripPortal(CustomerPortal):
             },
             "pending": {
                 "label": _("Pending Approval"),
-                "domain": [
-                    (
-                        "state",
-                        "in",
-                        [
-                            "pending_direct_manager",
-                            "pending_department_manager",
-                            "pending_ceo",
-                            "hr_review",
-                        ],
-                    )
-                ],
+                "domain": [("state", "in", ["pending_approval", "hr_review"])],
             },
             "in_progress": {
                 "label": _("In Progress"),
@@ -48,7 +37,6 @@ class BusinessTripPortal(CustomerPortal):
                         "state",
                         "in",
                         [
-                            "approved",
                             "allowance_calculated",
                             "ready_for_travel",
                             "trip_in_progress",
@@ -67,10 +55,7 @@ class BusinessTripPortal(CustomerPortal):
         return {
             "draft": "secondary",
             "returned": "warning",
-            "pending_direct_manager": "warning",
-            "pending_department_manager": "warning",
-            "pending_ceo": "warning",
-            "approved": "info",
+            "pending_approval": "warning",
             "hr_review": "info",
             "allowance_calculated": "info",
             "ready_for_travel": "primary",
@@ -117,7 +102,7 @@ class BusinessTripPortal(CustomerPortal):
 
         return {
             "employee_id": employee.id,
-            "destination_city": kw.get("destination_city"),
+            "destination_city_id": to_int("destination_city_id") or False,
             "destination_country_id": to_int("destination_country_id") or False,
             "distance_km": to_float("distance_km"),
             "purpose": kw.get("purpose"),
@@ -241,6 +226,7 @@ class BusinessTripPortal(CustomerPortal):
         values = {
             "employee": employee,
             "countries": request.env["res.country"].sudo().search([]),
+            "cities": request.env["business.trip.city"].sudo().search([]),
             "error": error,
             "formdata": kw,
             "page_name": "business_trip_new",

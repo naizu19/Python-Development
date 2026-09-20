@@ -5,12 +5,14 @@
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//div[hasclass('oe_title')]" position="after">
-                <group string="Business Trip Settings" name="business_trip_settings">
-                    <field name="is_senior_management"/>
-                    <field name="frequent_traveler"/>
-                    <field name="travel_class_id"/>
-                </group>
+            <xpath expr="//notebook" position="inside">
+                <page string="Business Trip Settings" name="business_trip_settings">
+                    <group>
+                        <field name="is_senior_management"/>
+                        <field name="frequent_traveler"/>
+                        <field name="travel_class_id"/>
+                    </group>
+                </page>
             </xpath>
         </field>
     </record>

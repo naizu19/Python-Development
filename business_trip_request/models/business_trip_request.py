@@ -52,6 +52,7 @@ class BusinessTripRequest(models.Model):
         tracking=True,
         default=lambda self: self.env.user.employee_id,
     )
+    employee_code = fields.Char(related="employee_id.identification_id", string="Employee ID")
     job_title = fields.Char(related="employee_id.job_title", store=True)
     department_id = fields.Many2one(
         related="employee_id.department_id", store=True
@@ -59,40 +60,26 @@ class BusinessTripRequest(models.Model):
     direct_manager_id = fields.Many2one(
         "hr.employee", related="employee_id.parent_id", store=True
     )
-    direct_manager_user_id = fields.Many2one(
-        "res.users", compute="_compute_approver_users", store=True
-    )
-    department_manager_user_id = fields.Many2one(
-        "res.users", compute="_compute_approver_users", store=True
-    )
-    ceo_user_id = fields.Many2one(
-        "res.users", compute="_compute_approver_users", store=True
-    )
     is_senior_management = fields.Boolean(
         related="employee_id.is_senior_management"
     )
     is_frequent_traveler = fields.Boolean(related="employee_id.frequent_traveler")
     travel_class_id = fields.Selection(related="employee_id.travel_class_id")
 
-    @api.depends("employee_id", "employee_id.parent_id", "employee_id.department_id",
-                 "company_id.business_trip_ceo_user_id")
-    def _compute_approver_users(self):
-        for rec in self:
-            rec.direct_manager_user_id = rec.employee_id.parent_id.user_id
-            rec.department_manager_user_id = (
-                rec.employee_id.department_id.manager_id.user_id
-            )
-            rec.ceo_user_id = rec.company_id.business_trip_ceo_user_id
-
     # ---------------------------------------------------------------
     # Trip information
     # ---------------------------------------------------------------
-    destination_city = fields.Char(string="Assignment Location (City)", required=True)
     destination_country_id = fields.Many2one("res.country", required=True)
+    destination_city_id = fields.Many2one(
+        "business.trip.city",
+        string="Assignment Location (City)",
+        required=True,
+        domain="[('country_id', '=', destination_country_id)]",
+    )
     distance_km = fields.Float(
         string="Total Travel Distance (km)",
         help="Used to determine whether a domestic assignment qualifies as a "
-        "formal business assignment (>= 300 km).",
+        "formal business assignment (see Settings for the distance threshold).",
     )
     purpose = fields.Text(string="Assignment Purpose")
     objectives = fields.Text(string="Business Trip Objectives")
@@ -124,8 +111,8 @@ class BusinessTripRequest(models.Model):
         string="Formal Business Assignment",
         compute="_compute_dates",
         store=True,
-        help="False when domestic distance is below 300 km: treated as a "
-        "Short Domestic Business Trip instead of a formal assignment.",
+        help="False when domestic distance is below the configured threshold: "
+        "treated as a Short Domestic Business Trip instead of a formal assignment.",
     )
     is_peak_period = fields.Boolean(
         string="Peak Period Location/Date", compute="_compute_peak_period"
@@ -136,7 +123,13 @@ class BusinessTripRequest(models.Model):
         string="International Extra Travel Days", compute="_compute_extra_days", store=True
     )
 
-    @api.depends("date_start", "date_end", "overnight_stay", "trip_type", "distance_km")
+    @api.onchange("destination_country_id")
+    def _onchange_destination_country_id(self):
+        if self.destination_city_id.country_id != self.destination_country_id:
+            self.destination_city_id = False
+
+    @api.depends("date_start", "date_end", "overnight_stay", "trip_type", "distance_km",
+                 "company_id.business_trip_formal_distance_km")
     def _compute_dates(self):
         for rec in self:
             total_days = 0
@@ -145,7 +138,8 @@ class BusinessTripRequest(models.Model):
             rec.total_days = total_days
             rec.overnight_count = max(total_days - 1, 0) if rec.overnight_stay else 0
             if rec.trip_type == "domestic":
-                rec.is_formal_assignment = rec.distance_km >= 300
+                threshold = rec.company_id.business_trip_formal_distance_km or 300.0
+                rec.is_formal_assignment = rec.distance_km >= threshold
             else:
                 rec.is_formal_assignment = True
 
@@ -169,15 +163,16 @@ class BusinessTripRequest(models.Model):
             else:
                 rec.trip_type = False
 
-    @api.depends("destination_city", "date_start")
+    @api.depends("destination_city_id", "date_start",
+                 "company_id.business_trip_peak_season_start_month",
+                 "company_id.business_trip_peak_season_end_month")
     def _compute_peak_period(self):
-        from .business_trip_peak_period import PEAK_CITIES
-
         for rec in self:
             is_peak = False
-            city = (rec.destination_city or "").strip().lower()
-            if city in PEAK_CITIES and rec.date_start:
-                if rec.date_start.month in (6, 7, 8):
+            if rec.destination_city_id.is_peak_city and rec.date_start:
+                start_month = rec.company_id.business_trip_peak_season_start_month or 6
+                end_month = rec.company_id.business_trip_peak_season_end_month or 8
+                if start_month <= rec.date_start.month <= end_month:
                     is_peak = True
                 else:
                     periods = self.env["business.trip.peak.period"].search(
@@ -190,15 +185,20 @@ class BusinessTripRequest(models.Model):
                     is_peak = bool(periods)
             rec.is_peak_period = is_peak
 
-    @api.depends("trip_type", "flight_duration_hours")
+    @api.depends("trip_type", "flight_duration_hours",
+                 "company_id.business_trip_intl_short_flight_hours",
+                 "company_id.business_trip_intl_short_flight_extra_days",
+                 "company_id.business_trip_intl_long_flight_extra_days")
     def _compute_extra_days(self):
         for rec in self:
             if rec.trip_type != "international" or not rec.flight_duration_hours:
                 rec.extra_days = 0
-            elif rec.flight_duration_hours < 4:
-                rec.extra_days = 1
             else:
-                rec.extra_days = 2
+                threshold = rec.company_id.business_trip_intl_short_flight_hours or 4.0
+                if rec.flight_duration_hours < threshold:
+                    rec.extra_days = rec.company_id.business_trip_intl_short_flight_extra_days or 1
+                else:
+                    rec.extra_days = rec.company_id.business_trip_intl_long_flight_extra_days or 2
 
     # ---------------------------------------------------------------
     # Required travel services
@@ -249,9 +249,11 @@ class BusinessTripRequest(models.Model):
                     messages.append(
                         _("✕ Less than %s working day(s) before travel.") % min_days
                     )
-            if rec.trip_type == "domestic" and rec.distance_km and rec.distance_km < 300:
+            distance_threshold = rec.company_id.business_trip_formal_distance_km or 300.0
+            if rec.trip_type == "domestic" and rec.distance_km and rec.distance_km < distance_threshold:
                 messages.append(
-                    _("⚠ Trip is below 300 km and may not qualify as a formal assignment.")
+                    _("⚠ Trip is below %s km and may not qualify as a formal assignment.")
+                    % distance_threshold
                 )
             if rec.need_transportation:
                 messages.append(
@@ -291,14 +293,14 @@ class BusinessTripRequest(models.Model):
     eligible_days = fields.Integer(string="Number of Eligible Days")
     overnight_factor = fields.Float(string="Overnight Factor", default=1.0)
     gross_allowance = fields.Monetary(string="Gross Allowance")
-    accommodation_amount = fields.Monetary(string="Accommodation (40%)")
-    transportation_amount = fields.Monetary(string="Transportation (30%)")
-    food_amount = fields.Monetary(string="Food (15%)")
-    misc_allowance_amount = fields.Monetary(string="Assignment Allowance (15%)")
+    accommodation_amount = fields.Monetary(string="Accommodation")
+    transportation_amount = fields.Monetary(string="Transportation")
+    food_amount = fields.Monetary(string="Food")
+    misc_allowance_amount = fields.Monetary(string="Assignment Allowance")
     transportation_deduction = fields.Monetary(string="Transportation Deduction")
     net_allowance = fields.Monetary(string="Net Allowance", tracking=True)
     short_trip_daily_amount = fields.Monetary(
-        string="Short Trip Daily Allowance (SAR 150/day)", compute="_compute_short_trip", store=True
+        string="Short Trip Daily Allowance", compute="_compute_short_trip", store=True
     )
     accommodation_actual_cost = fields.Monetary(string="Actual Accommodation Cost")
     payment_timing = fields.Selection(
@@ -334,9 +336,10 @@ class BusinessTripRequest(models.Model):
                 raise UserError(
                     _("No allowance rule configured for %s.") % (rec.region or rec.trip_type)
                 )
+            company = rec.company_id
             rate = rule.percentage
             if rec.is_senior_management:
-                rate += rec.company_id.business_trip_senior_mgmt_adjustment_pct or 20.0
+                rate += company.business_trip_senior_mgmt_adjustment_pct or 20.0
             rec.applicable_rate = rate
 
             base = rec.basic_salary * (rate / 100.0)
@@ -349,18 +352,24 @@ class BusinessTripRequest(models.Model):
             eligible_days = rec.total_days + rec.extra_days
             rec.eligible_days = eligible_days
 
-            rec.overnight_factor = 1.0 if rec.overnight_stay else 0.5
+            no_overnight_factor = company.business_trip_no_overnight_factor or 0.5
+            rec.overnight_factor = 1.0 if rec.overnight_stay else no_overnight_factor
             gross = base * eligible_days * rec.overnight_factor
             rec.gross_allowance = gross
 
-            rec.accommodation_amount = gross * 0.40
-            transportation_component = gross * 0.30
-            rec.food_amount = gross * 0.15
-            rec.misc_allowance_amount = gross * 0.15
+            pct_accommodation = (company.business_trip_pct_accommodation or 40.0) / 100.0
+            pct_transportation = (company.business_trip_pct_transportation or 30.0) / 100.0
+            pct_food = (company.business_trip_pct_food or 15.0) / 100.0
+            pct_misc = (company.business_trip_pct_misc or 15.0) / 100.0
+
+            rec.accommodation_amount = gross * pct_accommodation
+            transportation_component = gross * pct_transportation
+            rec.food_amount = gross * pct_food
+            rec.misc_allowance_amount = gross * pct_misc
 
             deduction = 0.0
             if rec.need_transportation:
-                pct = rec.company_id.business_trip_transportation_deduction_pct or 20.0
+                pct = company.business_trip_transportation_deduction_pct or 20.0
                 deduction = transportation_component * (pct / 100.0)
             rec.transportation_deduction = deduction
             rec.transportation_amount = transportation_component - deduction
@@ -438,7 +447,8 @@ class BusinessTripRequest(models.Model):
             rec.settlement_amount = rec.net_allowance - advance
 
     # ---------------------------------------------------------------
-    # Approval workflow
+    # Approval workflow (steps are configured in
+    # Business Trips > Configuration > Approval Steps)
     # ---------------------------------------------------------------
     approval_line_ids = fields.One2many(
         "business.trip.approval.line", "request_id", string="Approval History"
@@ -448,27 +458,41 @@ class BusinessTripRequest(models.Model):
     can_current_user_approve = fields.Boolean(
         compute="_compute_can_current_user_approve"
     )
+    current_step_name = fields.Char(
+        string="Currently Pending With", compute="_compute_current_step_name"
+    )
 
-    @api.depends("approval_line_ids.state", "approval_line_ids.approver_id", "state")
-    def _compute_can_current_user_approve(self):
+    @api.depends("approval_line_ids.state", "state")
+    def _compute_current_step_name(self):
+        for rec in self:
+            line = rec._current_approval_line()
+            rec.current_step_name = line.name if line else False
+
+    def _is_hr_user(self, user):
         hr_group = self.env.ref(
             "business_trip_request.group_business_trip_hr", raise_if_not_found=False
         )
-        is_hr = bool(hr_group) and self.env.user in hr_group.users
+        return bool(hr_group) and user in hr_group.users
+
+    @api.depends("approval_line_ids.state", "approval_line_ids.approver_id",
+                 "approval_line_ids.approver_group_id", "state")
+    def _compute_can_current_user_approve(self):
+        user = self.env.user
+        is_hr = self._is_hr_user(user)
         for rec in self:
             line = rec._current_approval_line()
-            rec.can_current_user_approve = bool(line) and (
-                is_hr or line.approver_id == self.env.user
-            )
+            can_approve = False
+            if line:
+                if is_hr or line.approver_id == user:
+                    can_approve = True
+                elif line.approver_group_id and user in line.approver_group_id.users:
+                    can_approve = True
+            rec.can_current_user_approve = can_approve
 
     state = fields.Selection(
         [
             ("draft", "Draft"),
-            ("submitted", "Submitted"),
-            ("pending_direct_manager", "Pending Direct Manager Approval"),
-            ("pending_department_manager", "Pending Department Manager Approval"),
-            ("pending_ceo", "Pending CEO Approval"),
-            ("approved", "Approved"),
+            ("pending_approval", "Pending Approval"),
             ("hr_review", "HR Review"),
             ("allowance_calculated", "Allowance Calculated"),
             ("ready_for_travel", "Ready for Travel"),
@@ -506,13 +530,33 @@ class BusinessTripRequest(models.Model):
         if not line:
             raise UserError(_("There is no pending approval step for this request."))
         user = self.env.user
-        is_hr = user.has_group("business_trip_request.group_business_trip_hr")
-        if not is_hr and line.approver_id != user:
+        if self._is_hr_user(user):
+            return line
+        if line.approver_group_id:
+            if user not in line.approver_group_id.users:
+                raise UserError(
+                    _("Only members of the '%s' group can act on this approval step.")
+                    % line.approver_group_id.name
+                )
+        elif line.approver_id != user:
             raise UserError(
                 _("Only %s can act on this approval step.")
                 % (line.approver_id.name or _("the assigned approver"))
             )
         return line
+
+    def _notify_line_approver(self, line):
+        self.ensure_one()
+        summary = _("Approve Business Trip Request %s (%s)") % (self.name, line.name)
+        if line.approver_id:
+            self.activity_schedule(
+                "mail.mail_activity_data_todo", user_id=line.approver_id.id, summary=summary
+            )
+        elif line.approver_group_id:
+            for user in line.approver_group_id.users:
+                self.activity_schedule(
+                    "mail.mail_activity_data_todo", user_id=user.id, summary=summary
+                )
 
     def action_submit(self):
         for rec in self:
@@ -540,63 +584,58 @@ class BusinessTripRequest(models.Model):
                           "day(s) before travel.") % adv_min_days
                     )
 
-            rec.approval_line_ids.sudo().unlink()
-            lines = [
-                (0, 0, {
-                    "sequence": 10, "role": "direct_manager",
-                    "approver_id": rec.direct_manager_user_id.id,
-                }),
-                (0, 0, {
-                    "sequence": 20, "role": "department_manager",
-                    "approver_id": rec.department_manager_user_id.id,
-                }),
-                (0, 0, {
-                    "sequence": 30, "role": "ceo",
-                    "approver_id": rec.ceo_user_id.id,
-                }),
-            ]
-            rec.write({"approval_line_ids": lines, "state": "pending_direct_manager"})
-            rec.message_post(body=_("Request submitted for approval."))
-            if rec.direct_manager_user_id:
-                rec.activity_schedule(
-                    "mail.mail_activity_data_todo",
-                    user_id=rec.direct_manager_user_id.id,
-                    summary=_("Approve Business Trip Request %s") % rec.name,
+            steps = self.env["business.trip.approval.step"].search(
+                [("company_id", "=", rec.company_id.id), ("active", "=", True)],
+                order="sequence",
+            )
+            if not steps:
+                raise UserError(
+                    _("No approval steps are configured. Ask an administrator to set "
+                      "them up under Business Trips > Configuration > Approval Steps.")
                 )
+
+            rec.approval_line_ids.sudo().unlink()
+            lines = []
+            for step in steps:
+                approver_id = False
+                group_id = False
+                if step.source == "employee_manager":
+                    approver_id = rec.employee_id.parent_id.user_id.id
+                elif step.source == "department_manager":
+                    approver_id = rec.employee_id.department_id.manager_id.user_id.id
+                elif step.source == "ceo":
+                    approver_id = rec.company_id.business_trip_ceo_user_id.id
+                elif step.source == "group":
+                    group_id = step.group_id.id
+                lines.append((0, 0, {
+                    "sequence": step.sequence,
+                    "name": step.name,
+                    "approver_id": approver_id,
+                    "approver_group_id": group_id,
+                }))
+            rec.write({"approval_line_ids": lines, "state": "pending_approval"})
+            rec.message_post(body=_("Request submitted for approval."))
+            first_line = rec._current_approval_line()
+            if first_line:
+                rec._notify_line_approver(first_line)
 
     def action_approve(self):
         for rec in self:
             line = rec._check_is_current_approver()
-            line.write({"state": "approved", "date": fields.Datetime.now()})
+            line.write({
+                "state": "approved",
+                "date": fields.Datetime.now(),
+                "approved_by": self.env.user.id,
+            })
             rec.message_post(
-                body=_("%s approved (%s).") % (line.role.replace("_", " ").title(), line.approver_id.name or "")
+                body=_("%s approved by %s.") % (line.name, self.env.user.name)
             )
             next_line = rec._current_approval_line()
             if next_line:
-                rec.state = {
-                    "direct_manager": "pending_direct_manager",
-                    "department_manager": "pending_department_manager",
-                    "ceo": "pending_ceo",
-                }[next_line.role]
-                if next_line.approver_id:
-                    rec.activity_schedule(
-                        "mail.mail_activity_data_todo",
-                        user_id=next_line.approver_id.id,
-                        summary=_("Approve Business Trip Request %s") % rec.name,
-                    )
+                rec._notify_line_approver(next_line)
             else:
                 rec.state = "hr_review"
                 rec.message_post(body=_("Request fully approved. Routed to HR for review."))
-                hr_group = self.env.ref(
-                    "business_trip_request.group_business_trip_hr", raise_if_not_found=False
-                )
-                if hr_group:
-                    for user in hr_group.users:
-                        rec.activity_schedule(
-                            "mail.mail_activity_data_todo",
-                            user_id=user.id,
-                            summary=_("Business Trip Request %s ready for HR review") % rec.name,
-                        )
 
     def _open_reason_wizard(self, action_type):
         self.ensure_one()
@@ -624,20 +663,24 @@ class BusinessTripRequest(models.Model):
     def action_reject(self, reason):
         for rec in self:
             line = rec._check_is_current_approver()
-            line.write(
-                {"state": "rejected", "comment": reason, "date": fields.Datetime.now()}
-            )
+            line.write({
+                "state": "rejected", "comment": reason,
+                "date": fields.Datetime.now(), "approved_by": self.env.user.id,
+            })
             rec.write({"state": "rejected", "rejection_reason": reason})
-            rec.message_post(body=_("Request rejected: %s") % reason)
+            rec.message_post(body=_("Request rejected by %s: %s") % (self.env.user.name, reason))
 
     def action_return_for_modification(self, comment):
         for rec in self:
             line = rec._check_is_current_approver()
-            line.write(
-                {"state": "returned", "comment": comment, "date": fields.Datetime.now()}
-            )
+            line.write({
+                "state": "returned", "comment": comment,
+                "date": fields.Datetime.now(), "approved_by": self.env.user.id,
+            })
             rec.write({"state": "returned", "return_comment": comment})
-            rec.message_post(body=_("Request returned for modification: %s") % comment)
+            rec.message_post(
+                body=_("Request returned for modification by %s: %s") % (self.env.user.name, comment)
+            )
 
     def action_resubmit(self):
         for rec in self:

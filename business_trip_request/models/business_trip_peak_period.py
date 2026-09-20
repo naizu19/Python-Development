@@ -1,7 +1,5 @@
 from odoo import fields, models
 
-PEAK_CITIES = ["abha", "jeddah", "makkah", "mecca", "madinah", "medina", "dammam", "neom"]
-
 
 class BusinessTripPeakPeriod(models.Model):
     _name = "business.trip.peak.period"
