@@ -180,3 +180,85 @@ class TestBusinessTripRequest(TransactionCase):
     def test_domestic_trip_has_no_extra_days(self):
         trip = self._make_request(distance_km=400)
         self.assertEqual(trip.extra_days, 0)
+
+    # ------------------------------------------------------------
+    # Section 4: Trip Dates - total days / overnight stays calc
+    # ------------------------------------------------------------
+    def test_total_days_and_overnight_count(self):
+        trip = self._make_request(
+            date_start=Date.to_string(Date.today() + timedelta(days=5)),
+            date_end=Date.to_string(Date.today() + timedelta(days=8)),
+            overnight_stay=True,
+        )
+        self.assertEqual(trip.total_days, 4)
+        self.assertEqual(trip.overnight_count, 3)
+
+    def test_no_overnight_count_when_no_overnight_stay(self):
+        trip = self._make_request(overnight_stay=False)
+        self.assertEqual(trip.overnight_count, 0)
+
+    # ------------------------------------------------------------
+    # Section 5: Travel & Support Requirements checkboxes
+    # ------------------------------------------------------------
+    def test_travel_services_stored_correctly(self):
+        trip = self._make_request(
+            need_flight=True,
+            need_transportation=True,
+            need_visa=False,
+            need_other=True,
+            other_specify="Need a translator on-site",
+        )
+        self.assertTrue(trip.need_flight)
+        self.assertTrue(trip.need_transportation)
+        self.assertFalse(trip.need_visa)
+        self.assertEqual(trip.other_specify, "Need a translator on-site")
+
+    # ------------------------------------------------------------
+    # Section 9: Approval workflow moves sequentially
+    # ------------------------------------------------------------
+    def test_approval_chain_moves_sequentially(self):
+        trip = self._make_request()
+        trip.action_submit()
+        self.assertEqual(trip.state, "pending_direct_manager")
+
+        trip.action_approve()
+        self.assertEqual(trip.state, "pending_department_manager")
+
+        trip.action_approve()
+        self.assertEqual(trip.state, "pending_ceo")
+
+        trip.action_approve()
+        self.assertEqual(trip.state, "hr_review")
+
+        for line in trip.approval_line_ids:
+            self.assertEqual(line.state, "approved")
+
+    # ------------------------------------------------------------
+    # Section 10: Approval actions - reject requires reason
+    # ------------------------------------------------------------
+    def test_reject_stores_reason_and_stops_workflow(self):
+        trip = self._make_request()
+        trip.action_submit()
+        trip.action_reject("Budget not approved for this quarter")
+        self.assertEqual(trip.state, "rejected")
+        self.assertEqual(trip.rejection_reason, "Budget not approved for this quarter")
+        rejected_line = trip.approval_line_ids.filtered(lambda l: l.state == "rejected")
+        self.assertTrue(rejected_line)
+
+    def test_return_for_modification_stores_comment_and_allows_resubmit(self):
+        trip = self._make_request()
+        trip.action_submit()
+        trip.action_return_for_modification("Please add more detail to objectives")
+        self.assertEqual(trip.state, "returned")
+        self.assertEqual(trip.return_comment, "Please add more detail to objectives")
+
+        trip.action_resubmit()
+        self.assertEqual(trip.state, "draft")
+
+    def test_reason_wizard_requires_reason(self):
+        trip = self._make_request()
+        trip.action_submit()
+        with self.assertRaises(Exception):
+            self.env["business.trip.reason.wizard"].create(
+                {"request_id": trip.id, "action_type": "reject", "reason": False}
+            )
