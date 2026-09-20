@@ -162,7 +162,7 @@ class BusinessTripPortal(CustomerPortal):
             }
         )
         return request.render(
-            "business_trip_request_portal.portal_my_business_trips", values
+            "business_trip_request.portal_my_business_trips", values
         )
 
     @http.route(
@@ -197,7 +197,7 @@ class BusinessTripPortal(CustomerPortal):
             "page_name": "business_trip_new",
         }
         return request.render(
-            "business_trip_request_portal.portal_business_trip_form", values
+            "business_trip_request.portal_business_trip_form", values
         )
 
     @http.route(["/my/business-trips/<int:request_id>"], type="http", auth="user", website=True)
@@ -209,7 +209,7 @@ class BusinessTripPortal(CustomerPortal):
             "error": kw.get("error"),
         }
         return request.render(
-            "business_trip_request_portal.portal_business_trip_detail", values
+            "business_trip_request.portal_business_trip_detail", values
         )
 
     @http.route(

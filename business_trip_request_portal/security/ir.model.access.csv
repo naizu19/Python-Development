@@ -1,2 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_business_trip_request_portal,business.trip.request.portal,business_trip_request.model_business_trip_request,base.group_portal,1,0,0,0

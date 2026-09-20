@@ -19,12 +19,15 @@ Implements the full business-assignment lifecycle:
 * Cash advance request and control
 * Post-trip report, report approval and HR/Finance settlement
 * Frequent traveler flag and travel-class eligibility informational data
+* Employee self-service Website/Portal pages (/my/business-trips) to submit,
+  track and report on requests without needing an internal user seat
 """,
     "author": "naizu19",
     "license": "LGPL-3",
-    "depends": ["hr", "mail"],
+    "depends": ["hr", "mail", "portal"],
     "data": [
         "security/business_trip_security.xml",
+        "security/portal_security.xml",
         "security/ir.model.access.csv",
         "data/ir_sequence_data.xml",
         "data/allowance_rule_data.xml",
@@ -34,6 +37,7 @@ Implements the full business-assignment lifecycle:
         "views/business_trip_request_views.xml",
         "views/res_company_views.xml",
         "views/business_trip_menus.xml",
+        "views/portal_templates.xml",
         "wizard/business_trip_reason_wizard_views.xml",
     ],
     "installable": True,
