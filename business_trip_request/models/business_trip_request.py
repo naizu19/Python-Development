@@ -147,9 +147,7 @@ class BusinessTripRequest(models.Model):
     @api.depends("destination_country_id", "company_id", "company_id.country_id")
     def _compute_trip_type(self):
         for rec in self:
-            home_country = rec.company_id.country_id or rec.env.ref(
-                "base.sa", raise_if_not_found=False
-            )
+            home_country = rec.company_id.country_id
             if rec.destination_country_id and home_country:
                 if rec.destination_country_id == home_country:
                     rec.trip_type = "domestic"
