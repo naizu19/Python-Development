@@ -10,7 +10,6 @@ class BusinessTripReasonWizard(models.TransientModel):
         [
             ("reject", "Reject"),
             ("return", "Return for Modification"),
-            ("reject_report", "Reject Trip Report"),
         ],
         required=True,
     )
@@ -22,6 +21,4 @@ class BusinessTripReasonWizard(models.TransientModel):
             self.request_id.action_reject(self.reason)
         elif self.action_type == "return":
             self.request_id.action_return_for_modification(self.reason)
-        elif self.action_type == "reject_report":
-            self.request_id.action_reject_trip_report(self.reason)
         return {"type": "ir.actions.act_window_close"}

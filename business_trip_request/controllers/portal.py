@@ -32,20 +32,7 @@ class BusinessTripPortal(CustomerPortal):
             },
             "in_progress": {
                 "label": _("In Progress"),
-                "domain": [
-                    (
-                        "state",
-                        "in",
-                        [
-                            "allowance_calculated",
-                            "ready_for_travel",
-                            "trip_in_progress",
-                            "trip_report_required",
-                            "trip_report_under_approval",
-                            "settlement",
-                        ],
-                    )
-                ],
+                "domain": [("state", "=", "allowance_calculated")],
             },
             "completed": {"label": _("Completed"), "domain": [("state", "=", "completed")]},
             "rejected": {"label": _("Rejected"), "domain": [("state", "=", "rejected")]},
@@ -58,13 +45,9 @@ class BusinessTripPortal(CustomerPortal):
             "pending_approval": "warning",
             "hr_review": "info",
             "allowance_calculated": "info",
-            "ready_for_travel": "primary",
-            "trip_in_progress": "primary",
-            "trip_report_required": "warning",
-            "trip_report_under_approval": "warning",
-            "settlement": "info",
             "completed": "success",
             "rejected": "danger",
+            "cancelled": "secondary",
         }
 
     def _btr_get_approval_badge(self):
@@ -301,7 +284,7 @@ class BusinessTripPortal(CustomerPortal):
             }
         )
         try:
-            trip.sudo().action_submit_trip_report()
+            trip.sudo().action_complete()
         except Exception as exc:  # noqa: BLE001 - surfaced to the portal page
             return request.redirect(
                 "/my/business-trips/%s?error=%s" % (request_id, str(exc))

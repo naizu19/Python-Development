@@ -588,11 +588,6 @@ class BusinessTripRequest(models.Model):
             ("pending_approval", "Pending Approval"),
             ("hr_review", "HR Review"),
             ("allowance_calculated", "Allowance Calculated"),
-            ("ready_for_travel", "Ready for Travel"),
-            ("trip_in_progress", "Trip in Progress"),
-            ("trip_report_required", "Trip Report Required"),
-            ("trip_report_under_approval", "Trip Report Under Approval"),
-            ("settlement", "Settlement"),
             ("completed", "Completed"),
             ("rejected", "Rejected"),
             ("returned", "Returned for Modification"),
@@ -785,9 +780,6 @@ class BusinessTripRequest(models.Model):
     def action_open_return_wizard(self):
         return self._open_reason_wizard("return")
 
-    def action_open_reject_report_wizard(self):
-        return self._open_reason_wizard("reject_report")
-
     def action_reject(self, reason):
         for rec in self:
             line = rec._check_is_current_approver()
@@ -824,73 +816,23 @@ class BusinessTripRequest(models.Model):
             rec.state = "cancelled"
             rec.message_post(body=_("Request cancelled by %s.") % self.env.user.name)
 
-    def action_mark_ready_for_travel(self):
+    def action_complete(self):
         for rec in self:
             if rec.state != "allowance_calculated":
-                raise UserError(_("Allowance must be calculated first."))
-            rec.state = "ready_for_travel"
-
-    def action_start_trip(self):
-        for rec in self:
-            if rec.state != "ready_for_travel":
-                raise UserError(_("Request is not ready for travel."))
-            rec.state = "trip_in_progress"
-
-    def action_end_trip(self):
-        for rec in self:
-            if rec.state != "trip_in_progress":
-                raise UserError(_("Trip is not in progress."))
-            rec.state = "trip_report_required"
-            if rec.employee_id.user_id:
-                rec.activity_schedule(
-                    "mail.mail_activity_data_todo",
-                    user_id=rec.employee_id.user_id.id,
-                    summary=_("Submit Business Trip Report for %s") % rec.name,
-                )
-
-    def action_submit_trip_report(self):
-        for rec in self:
-            if rec.state != "trip_report_required":
-                raise UserError(_("Trip report is not required at this stage."))
+                raise UserError(_("Allowance must be calculated before this request can be completed."))
             if not rec.actual_date_start or not rec.actual_date_end or not rec.work_summary:
                 raise UserError(
-                    _("Actual dates and summary of work performed are mandatory to "
-                      "submit the trip report.")
-                )
-            rec.write({"state": "trip_report_under_approval", "report_state": "submitted"})
-            rec.message_post(body=_("Trip report submitted."))
-
-    def action_approve_trip_report(self):
-        for rec in self:
-            if rec.state != "trip_report_under_approval":
-                raise UserError(_("There is no trip report pending approval."))
-            rec.write({"state": "settlement", "report_state": "approved"})
-            rec.message_post(
-                body=_("Trip report approved. Forwarded to HR and Finance for settlement.")
-            )
-
-    def action_reject_trip_report(self, reason):
-        for rec in self:
-            if rec.state != "trip_report_under_approval":
-                raise UserError(_("There is no trip report pending approval."))
-            rec.write({"state": "trip_report_required", "report_state": "rejected"})
-            rec.message_post(body=_("Trip report rejected: %s") % reason)
-
-    def action_process_settlement(self):
-        for rec in self:
-            if rec.state != "settlement":
-                raise UserError(_("Request is not at the settlement stage."))
-            if rec.report_state != "approved":
-                raise UserError(
-                    _("Settlement cannot be finalized until the trip report has been "
-                      "submitted and approved.")
+                    _("Please enter the trip report (Actual Start Date, Actual Return "
+                      "Date and Summary of Work Performed) before completing this "
+                      "request.")
                 )
             rec.write(
                 {
                     "state": "completed",
+                    "report_state": "approved",
                     "settlement_state": "processed",
                     "settlement_date": fields.Date.context_today(rec),
                     "processed_by": self.env.user.id,
                 }
             )
-            rec.message_post(body=_("Settlement processed. Request completed."))
+            rec.message_post(body=_("Trip report recorded. Request completed by %s.") % self.env.user.name)

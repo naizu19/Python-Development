@@ -20,29 +20,14 @@
                     <button name="action_calculate_allowance" string="Calculate Allowance" type="object"
                             class="btn-primary" groups="business_trip_request.group_business_trip_hr"
                             invisible="state != 'hr_review'"/>
-                    <button name="action_mark_ready_for_travel" string="Mark Ready for Travel" type="object"
-                            class="btn-primary" groups="business_trip_request.group_business_trip_hr"
+                    <button name="action_complete" string="Complete" type="object"
+                            class="btn-primary"
                             invisible="state != 'allowance_calculated'"/>
-                    <button name="action_start_trip" string="Start Trip" type="object"
-                            class="btn-primary" invisible="state != 'ready_for_travel'"/>
-                    <button name="action_end_trip" string="End Trip" type="object"
-                            class="btn-primary" invisible="state != 'trip_in_progress'"/>
-                    <button name="action_submit_trip_report" string="Submit Trip Report" type="object"
-                            class="btn-primary" invisible="state != 'trip_report_required'"/>
-                    <button name="action_approve_trip_report" string="Approve Trip Report" type="object"
-                            class="btn-primary" groups="business_trip_request.group_business_trip_hr"
-                            invisible="state != 'trip_report_under_approval'"/>
-                    <button name="action_open_reject_report_wizard" string="Reject Trip Report" type="object"
-                            groups="business_trip_request.group_business_trip_hr"
-                            invisible="state != 'trip_report_under_approval'"/>
-                    <button name="action_process_settlement" string="Process Settlement" type="object"
-                            class="btn-primary" groups="business_trip_request.group_business_trip_finance"
-                            invisible="state != 'settlement'"/>
                     <button name="action_cancel" string="Cancel" type="object"
                             confirm="Are you sure you want to cancel this request?"
                             invisible="state not in ('draft', 'pending_approval', 'hr_review', 'returned')"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,pending_approval,hr_review,ready_for_travel,completed"/>
+                           statusbar_visible="draft,pending_approval,hr_review,allowance_calculated,completed"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -169,7 +154,7 @@
                                 <field name="accommodation_actual_cost"/>
                             </group>
                         </page>
-                        <page string="Trip Report" invisible="state in ('draft','pending_approval','hr_review','allowance_calculated','ready_for_travel','trip_in_progress')">
+                        <page string="Trip Report" invisible="state not in ('allowance_calculated', 'completed')">
                             <group>
                                 <group>
                                     <field name="actual_date_start"/>
@@ -190,7 +175,7 @@
                                 <field name="report_notes"/>
                             </group>
                         </page>
-                        <page string="Settlement" invisible="state not in ('settlement','completed')"
+                        <page string="Settlement" invisible="state != 'completed'"
                               groups="business_trip_request.group_business_trip_hr,business_trip_request.group_business_trip_finance">
                             <group>
                                 <field name="settlement_state" readonly="1"/>
