@@ -324,12 +324,15 @@ class BusinessTripRequest(models.Model):
     )
 
     @api.depends("total_days", "is_formal_assignment", "trip_type", "company_id",
-                 "company_id.business_trip_short_domestic_rate")
+                 "company_id.business_trip_short_domestic_rate",
+                 "company_id.business_trip_no_overnight_factor", "overnight_stay")
     def _compute_short_trip(self):
         for rec in self:
             if rec.trip_type == "domestic" and not rec.is_formal_assignment:
                 rate = rec.company_id.business_trip_short_domestic_rate or 150.0
-                rec.short_trip_daily_amount = rate * rec.total_days
+                no_overnight_factor = rec.company_id.business_trip_no_overnight_factor or 0.5
+                factor = 1.0 if rec.overnight_stay else no_overnight_factor
+                rec.short_trip_daily_amount = rate * rec.total_days * factor
             else:
                 rec.short_trip_daily_amount = 0.0
 
