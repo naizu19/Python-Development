@@ -10,9 +10,15 @@
                             class="btn-primary" invisible="state != 'draft'"/>
                     <button name="action_resubmit" string="Move to Draft" type="object"
                             invisible="state != 'returned'"/>
+                    <button name="action_approve" string="Approve by Manager" type="object"
+                            class="btn-primary"
+                            invisible="not can_current_user_approve or state != 'pending_approval' or current_step_name != 'Manager'"/>
+                    <button name="action_approve" string="Approve by CEO" type="object"
+                            class="btn-primary"
+                            invisible="not can_current_user_approve or state != 'pending_approval' or current_step_name != 'CEO'"/>
                     <button name="action_approve" string="Approve" type="object"
                             class="btn-primary"
-                            invisible="not can_current_user_approve or state != 'pending_approval'"/>
+                            invisible="not can_current_user_approve or state != 'pending_approval' or current_step_name in ('Manager', 'CEO')"/>
                     <button name="action_open_reject_wizard" string="Reject" type="object"
                             invisible="not can_current_user_approve or state != 'pending_approval'"/>
                     <button name="action_open_return_wizard" string="Return for Modification" type="object"
@@ -20,7 +26,7 @@
                     <button name="action_calculate_allowance" string="Calculate Allowance" type="object"
                             class="btn-primary" groups="business_trip_request.group_business_trip_hr"
                             invisible="state != 'hr_review' or (trip_type == 'domestic' and not is_formal_assignment)"/>
-                    <button name="action_approve_allowance" string="Approve" type="object"
+                    <button name="action_approve_allowance" string="Approve by HR" type="object"
                             class="btn-primary" groups="business_trip_request.group_business_trip_hr"
                             invisible="state != 'hr_review'"/>
                     <button name="action_complete" string="Complete" type="object"
@@ -36,7 +42,7 @@
                     <div class="oe_title">
                         <h1><field name="name" readonly="1"/></h1>
                         <div class="text-muted" invisible="not current_step_name or state not in ('pending_approval', 'hr_review')">
-                            Currently pending with: <field name="current_step_name" readonly="1" nolabel="1" class="oe_inline"/>
+                            Waiting for: <field name="current_step_name" readonly="1" nolabel="1" class="oe_inline"/>
                         </div>
                     </div>
                     <group>

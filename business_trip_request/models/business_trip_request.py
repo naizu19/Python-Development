@@ -604,8 +604,8 @@ class BusinessTripRequest(models.Model):
         [
             ("draft", "Draft"),
             ("pending_approval", "Pending Approval"),
-            ("hr_review", "HR Review"),
-            ("allowance_calculated", "HR Approved"),
+            ("hr_review", "Waiting for HR"),
+            ("allowance_calculated", "Done"),
             ("completed", "Completed"),
             ("rejected", "Rejected"),
             ("returned", "Returned for Modification"),
