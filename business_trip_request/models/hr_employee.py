@@ -1,6 +1,6 @@
 from datetime import date
 
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class HrEmployee(models.Model):
@@ -57,5 +57,18 @@ class HrEmployee(models.Model):
         default="economy",
         help="Flight ticket class the employee is entitled to according to "
         "their approved job level. Employees cannot select a higher class "
-        "than their eligibility.",
+        "than their eligibility. Auto-suggested when Senior Management is "
+        "ticked (see below) - HR can still override it manually.",
     )
+
+    @api.onchange("is_senior_management")
+    def _onchange_is_senior_management_travel_class(self):
+        for employee in self:
+            if not employee.is_senior_management:
+                employee.travel_class_id = "economy"
+                continue
+            ceo_user = employee.company_id.business_trip_ceo_user_id
+            if ceo_user and employee.user_id == ceo_user:
+                employee.travel_class_id = "first"
+            else:
+                employee.travel_class_id = "business"
