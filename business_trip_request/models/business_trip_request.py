@@ -144,10 +144,12 @@ class BusinessTripRequest(models.Model):
             else:
                 rec.is_formal_assignment = True
 
-    @api.depends("destination_country_id", "company_id")
+    @api.depends("destination_country_id", "company_id", "company_id.country_id")
     def _compute_trip_type(self):
         for rec in self:
-            home_country = rec.company_id.country_id
+            home_country = rec.company_id.country_id or rec.env.ref(
+                "base.sa", raise_if_not_found=False
+            )
             if rec.destination_country_id and home_country:
                 if rec.destination_country_id == home_country:
                     rec.trip_type = "domestic"
@@ -163,6 +165,7 @@ class BusinessTripRequest(models.Model):
                         rec.region = rec.region or "asian"
             else:
                 rec.trip_type = False
+                rec.region = False
 
     @api.depends("destination_city", "date_start",
                  "company_id.business_trip_peak_cities",
