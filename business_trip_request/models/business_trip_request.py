@@ -599,7 +599,8 @@ class BusinessTripRequest(models.Model):
             if working_days < min_days:
                 raise UserError(
                     _("The business assignment request must normally be submitted at "
-                      "least %s working day(s) before the assignment start date.")
+                      "least %s working day(s) before the assignment start date. "
+                      "Please choose a valid Start Date that meets this notice period.")
                     % min_days
                 )
             if rec.advance_required:
