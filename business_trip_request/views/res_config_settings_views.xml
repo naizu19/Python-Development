@@ -1,199 +1,247 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <record id="res_config_settings_view_form" model="ir.ui.view">
-        <field name="name">res.config.settings.view.form.business.trip</field>
-        <field name="model">res.config.settings</field>
-        <field name="arch" type="xml">
-            <form string="Business Trips">
-                <header>
-                    <button string="Save" type="object" name="execute" class="btn-primary" data-hotkey="s"/>
-                    <button string="Discard" type="object" name="cancel" class="btn-secondary" data-hotkey="j"/>
-                </header>
-                <sheet>
-                    <div class="o_setting_container" groups="business_trip_request.group_business_trip_hr">
-                    <h2>Approval &amp; Advance</h2>
-                    <div class="row mt16 o_settings_container">
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="business_trip_ceo_user_id"/>
-                                <div class="text-muted">Used by any approval step configured with source "CEO"</div>
-                                <div class="content-group">
-                                    <field name="business_trip_ceo_user_id"/>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="business_trip_min_advance_days"/>
-                                <div class="text-muted">Minimum advance notice before the assignment start date (working days)</div>
-                                <div class="content-group">
-                                    <field name="business_trip_min_advance_days"/>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="business_trip_advance_request_min_days"/>
-                                <div class="text-muted">Minimum notice to request a cash advance before travel (working days)</div>
-                                <div class="content-group">
-                                    <field name="business_trip_advance_request_min_days"/>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="business_trip_max_single_days"/>
-                                <div class="text-muted">Warn when a single assignment exceeds this duration (working days)</div>
-                                <div class="content-group">
-                                    <field name="business_trip_max_single_days"/>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="business_trip_settlement_days"/>
-                                <div class="text-muted">Deadline to settle an advance after returning (days)</div>
-                                <div class="content-group">
-                                    <field name="business_trip_settlement_days"/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <h2>Distance &amp; Short Trips</h2>
-                    <div class="row mt16 o_settings_container">
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="business_trip_formal_distance_km"/>
-                                <div class="text-muted">Minimum distance (km) for a domestic trip to be a formal assignment</div>
-                                <div class="content-group">
-                                    <field name="business_trip_formal_distance_km"/>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="business_trip_short_domestic_rate"/>
-                                <div class="text-muted">Daily rate for short domestic trips below that distance</div>
-                                <div class="content-group">
-                                    <field name="business_trip_short_domestic_rate"/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <record id="res_config_settings_view_form_business_trip"
+            model="ir.ui.view">
 
-                    <h2>Allowance Calculation</h2>
-                    <div class="row mt16 o_settings_container">
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="business_trip_no_overnight_factor"/>
-                                <div class="text-muted">Fraction of allowance paid when no overnight stay is required (0.5 = 50%)</div>
-                                <div class="content-group">
-                                    <field name="business_trip_no_overnight_factor"/>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="business_trip_senior_mgmt_adjustment_pct"/>
-                                <div class="text-muted">Extra percentage added for senior management employees</div>
-                                <div class="content-group">
-                                    <field name="business_trip_senior_mgmt_adjustment_pct"/>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="business_trip_transportation_deduction_pct"/>
-                                <div class="text-muted">Deduction applied to the transportation share when a rental car is requested</div>
-                                <div class="content-group">
-                                    <field name="business_trip_transportation_deduction_pct"/>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="business_trip_pct_accommodation"/>
-                                <div class="text-muted">Allowance breakdown shares (should add up to 100%)</div>
-                                <div class="content-group row">
-                                    <div class="col-6">
-                                        <label for="business_trip_pct_accommodation" string="Accommodation %"/>
-                                        <field name="business_trip_pct_accommodation"/>
-                                    </div>
-                                    <div class="col-6">
-                                        <label for="business_trip_pct_transportation" string="Transportation %"/>
-                                        <field name="business_trip_pct_transportation"/>
-                                    </div>
-                                    <div class="col-6">
-                                        <label for="business_trip_pct_food" string="Food %"/>
-                                        <field name="business_trip_pct_food"/>
-                                    </div>
-                                    <div class="col-6">
-                                        <label for="business_trip_pct_misc" string="Assignment Allowance %"/>
-                                        <field name="business_trip_pct_misc"/>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <h2>International Travel &amp; Peak Season</h2>
-                    <div class="row mt16 o_settings_container">
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="business_trip_intl_short_flight_hours"/>
-                                <div class="text-muted">Flight duration (hours) below which the "short flight" extra-days rule applies</div>
-                                <div class="content-group row">
-                                    <div class="col-6">
-                                        <field name="business_trip_intl_short_flight_hours"/>
-                                    </div>
-                                </div>
-                                <div class="content-group row mt8">
-                                    <div class="col-6">
-                                        <label for="business_trip_intl_short_flight_extra_days" string="Extra days (short flight)"/>
-                                        <field name="business_trip_intl_short_flight_extra_days"/>
-                                    </div>
-                                    <div class="col-6">
-                                        <label for="business_trip_intl_long_flight_extra_days" string="Extra days (long flight)"/>
-                                        <field name="business_trip_intl_long_flight_extra_days"/>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="business_trip_peak_season_start_month"/>
-                                <div class="text-muted">Peak season months (1-12) for cities flagged as peak-period locations</div>
-                                <div class="content-group row">
-                                    <div class="col-6">
-                                        <label for="business_trip_peak_season_start_month" string="From month"/>
-                                        <field name="business_trip_peak_season_start_month"/>
-                                    </div>
-                                    <div class="col-6">
-                                        <label for="business_trip_peak_season_end_month" string="To month"/>
-                                        <field name="business_trip_peak_season_end_month"/>
-                                    </div>
-                                </div>
-                                <div class="content-group mt8">
-                                    <label for="business_trip_peak_cities" string="Peak period cities"/>
-                                    <field name="business_trip_peak_cities" placeholder="e.g. Abha, Jeddah, Makkah"/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    </div>
-                </sheet>
-            </form>
+        <field name="name">
+            res.config.settings.view.form.inherit.business.trip
         </field>
-    </record>
 
-    <record id="action_business_trip_config_settings" model="ir.actions.act_window">
-        <field name="name">Business Trips</field>
-        <field name="res_model">res.config.settings</field>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="res_config_settings_view_form"/>
-        <field name="target">inline</field>
-        <field name="context">{'module': 'business_trip_request'}</field>
+        <field name="model">res.config.settings</field>
+
+        <field name="inherit_id"
+               ref="base.res_config_settings_view_form"/>
+
+        <field name="arch" type="xml">
+
+            <xpath expr="//form" position="inside">
+
+                <app string="Business Trips"
+                     name="business_trip"
+                     groups="business_trip_request.group_business_trip_hr">
+
+                    <!-- =================================================
+                         APPROVAL & ADVANCE
+                         ================================================= -->
+
+                    <block title="Approval &amp; Advance"
+                           name="business_trip_approval_advance">
+
+                        <setting id="business_trip_ceo_user"
+                                 string="CEO Approver"
+                                 help="User used by approval steps configured with source CEO.">
+
+                            <field name="business_trip_ceo_user_id"
+                                   options="{'no_create': True}"/>
+
+                        </setting>
+
+                        <setting id="business_trip_min_advance_days"
+                                 string="Minimum Advance Notice"
+                                 help="Minimum working days before the assignment start date.">
+
+                            <field name="business_trip_min_advance_days"/>
+
+                        </setting>
+
+                        <setting id="business_trip_advance_request_min_days"
+                                 string="Cash Advance Notice"
+                                 help="Minimum working days before travel to request a cash advance.">
+
+                            <field name="business_trip_advance_request_min_days"/>
+
+                        </setting>
+
+                        <setting id="business_trip_max_single_days"
+                                 string="Maximum Assignment Days"
+                                 help="Maximum working days allowed for a single assignment.">
+
+                            <field name="business_trip_max_single_days"/>
+
+                        </setting>
+
+                        <setting id="business_trip_settlement_days"
+                                 string="Settlement Deadline"
+                                 help="Number of days allowed to settle an advance after returning.">
+
+                            <field name="business_trip_settlement_days"/>
+
+                        </setting>
+
+                    </block>
+
+
+                    <!-- =================================================
+                         DISTANCE & SHORT TRIPS
+                         ================================================= -->
+
+                    <block title="Distance &amp; Short Trips"
+                           name="business_trip_distance_short_trip">
+
+                        <setting id="business_trip_formal_distance_km"
+                                 string="Formal Assignment Distance"
+                                 help="Minimum distance in km for a domestic trip to be considered a formal assignment.">
+
+                            <field name="business_trip_formal_distance_km"/>
+
+                        </setting>
+
+                        <setting id="business_trip_short_domestic_rate"
+                                 string="Short Domestic Trip Rate"
+                                 help="Daily rate for domestic trips below the formal assignment distance.">
+
+                            <field name="business_trip_short_domestic_rate"/>
+
+                        </setting>
+
+                    </block>
+
+
+                    <!-- =================================================
+                         ALLOWANCE CALCULATION
+                         ================================================= -->
+
+                    <block title="Allowance Calculation"
+                           name="business_trip_allowance_calculation">
+
+                        <setting id="business_trip_no_overnight_factor"
+                                 string="No Overnight Factor"
+                                 help="Fraction of allowance paid when no overnight stay is required. For example, 0.5 means 50%.">
+
+                            <field name="business_trip_no_overnight_factor"/>
+
+                        </setting>
+
+                        <setting id="business_trip_senior_mgmt_adjustment_pct"
+                                 string="Senior Management Adjustment"
+                                 help="Extra percentage added for eligible senior management employees.">
+
+                            <field name="business_trip_senior_mgmt_adjustment_pct"/>
+
+                        </setting>
+
+                        <setting id="business_trip_transportation_deduction_pct"
+                                 string="Transportation Deduction"
+                                 help="Percentage deducted from the transportation component when applicable.">
+
+                            <field name="business_trip_transportation_deduction_pct"/>
+
+                        </setting>
+
+                        <setting id="business_trip_allowance_breakdown"
+                                 string="Allowance Breakdown"
+                                 help="Configure the percentage breakdown of the total allowance.">
+
+                            <div class="row">
+
+                                <div class="col-6">
+                                    <label for="business_trip_pct_accommodation"
+                                           string="Accommodation %"/>
+                                    <field name="business_trip_pct_accommodation"/>
+                                </div>
+
+                                <div class="col-6">
+                                    <label for="business_trip_pct_transportation"
+                                           string="Transportation %"/>
+                                    <field name="business_trip_pct_transportation"/>
+                                </div>
+
+                                <div class="col-6 mt16">
+                                    <label for="business_trip_pct_food"
+                                           string="Food %"/>
+                                    <field name="business_trip_pct_food"/>
+                                </div>
+
+                                <div class="col-6 mt16">
+                                    <label for="business_trip_pct_misc"
+                                           string="Assignment Allowance %"/>
+                                    <field name="business_trip_pct_misc"/>
+                                </div>
+
+                            </div>
+
+                        </setting>
+
+                    </block>
+
+
+                    <!-- =================================================
+                         INTERNATIONAL TRAVEL & PEAK SEASON
+                         ================================================= -->
+
+                    <block title="International Travel &amp; Peak Season"
+                           name="business_trip_international_peak">
+
+                        <setting id="business_trip_intl_short_flight_hours"
+                                 string="Short Flight Threshold"
+                                 help="Flight duration below this value uses the short-flight extra-days rule.">
+
+                            <field name="business_trip_intl_short_flight_hours"/>
+
+                        </setting>
+
+                        <setting id="business_trip_intl_extra_days"
+                                 string="International Extra Days"
+                                 help="Configure additional travel days based on flight duration.">
+
+                            <div class="row">
+
+                                <div class="col-6">
+                                    <label for="business_trip_intl_short_flight_extra_days"
+                                           string="Short Flight Extra Days"/>
+                                    <field name="business_trip_intl_short_flight_extra_days"/>
+                                </div>
+
+                                <div class="col-6">
+                                    <label for="business_trip_intl_long_flight_extra_days"
+                                           string="Long Flight Extra Days"/>
+                                    <field name="business_trip_intl_long_flight_extra_days"/>
+                                </div>
+
+                            </div>
+
+                        </setting>
+
+                        <setting id="business_trip_peak_season_months"
+                                 string="Peak Season Months"
+                                 help="Configure the start and end months for peak season.">
+
+                            <div class="row">
+
+                                <div class="col-6">
+                                    <label for="business_trip_peak_season_start_month"
+                                           string="From Month"/>
+                                    <field name="business_trip_peak_season_start_month"/>
+                                </div>
+
+                                <div class="col-6">
+                                    <label for="business_trip_peak_season_end_month"
+                                           string="To Month"/>
+                                    <field name="business_trip_peak_season_end_month"/>
+                                </div>
+
+                            </div>
+
+                        </setting>
+
+                        <setting id="business_trip_peak_cities"
+                                 string="Peak Period Cities"
+                                 help="Cities that are treated as peak-period locations.">
+
+                            <field name="business_trip_peak_cities"
+                                   placeholder="e.g. Abha, Jeddah, Makkah"/>
+
+                        </setting>
+
+                    </block>
+
+                </app>
+
+            </xpath>
+
+        </field>
+
     </record>
 
 </odoo>
