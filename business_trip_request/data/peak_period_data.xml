@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="peak_period_saudi_national_day_2026" model="business.trip.peak.period">
+        <field name="name">Saudi National Day 2026</field>
+        <field name="date_from">2026-09-22</field>
+        <field name="date_to">2026-09-24</field>
+    </record>
+</odoo>

@@ -37,6 +37,7 @@ Implements the full business-assignment lifecycle:
         "data/ir_sequence_data.xml",
         "data/allowance_rule_data.xml",
         "data/approval_step_data.xml",
+        "data/peak_period_data.xml",
         "views/hr_employee_views.xml",
         "views/business_trip_allowance_rule_views.xml",
         "views/business_trip_peak_period_views.xml",
