@@ -351,7 +351,9 @@ class BusinessTripRequest(models.Model):
                 deduction = transportation_component * (ded_pct / 100.0)
             rec.expected_allowance = gross - deduction
 
-    @api.constrains("advance_required", "requested_advance", "expected_allowance")
+    @api.constrains(
+        "advance_required", "requested_advance", "expected_allowance", "basic_salary"
+    )
     def _check_requested_advance(self):
         for rec in self:
             if (
