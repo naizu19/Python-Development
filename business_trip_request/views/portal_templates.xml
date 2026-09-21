@@ -12,10 +12,52 @@
         </xpath>
     </template>
 
+    <template id="portal_btr_sidebar" name="Business Trips Portal Sidebar">
+        <div class="btr-sidebar">
+            <div class="btr-sidebar-brand">
+                <i class="fa fa-suitcase"/> Business Trips
+            </div>
+            <ul class="btr-sidebar-nav">
+                <li>
+                    <a href="/my/business-trips"
+                       t-attf-class="btr-sidebar-link #{'active' if active == 'dashboard' else ''}">
+                        <i class="fa fa-th-large"/> Home
+                    </a>
+                </li>
+                <li>
+                    <a href="/my/business-trips"
+                       t-attf-class="btr-sidebar-link #{'active' if active == 'all' else ''}">
+                        <i class="fa fa-list"/> My Requests
+                    </a>
+                </li>
+                <li>
+                    <a href="/my/business-trips/new"
+                       t-attf-class="btr-sidebar-link #{'active' if active == 'new' else ''}">
+                        <i class="fa fa-plus-circle"/> New Request
+                    </a>
+                </li>
+            </ul>
+            <div class="btr-sidebar-divider"/>
+            <div class="btr-sidebar-subtitle">Filter by Status</div>
+            <ul class="btr-sidebar-nav">
+                <li><a href="/my/business-trips?filterby=draft" class="btr-sidebar-link"><i class="fa fa-file-text-o"/> Draft / Returned</a></li>
+                <li><a href="/my/business-trips?filterby=pending" class="btr-sidebar-link"><i class="fa fa-clock-o"/> Pending Approval</a></li>
+                <li><a href="/my/business-trips?filterby=in_progress" class="btr-sidebar-link"><i class="fa fa-spinner"/> In Progress</a></li>
+                <li><a href="/my/business-trips?filterby=completed" class="btr-sidebar-link"><i class="fa fa-check-circle"/> Completed</a></li>
+                <li><a href="/my/business-trips?filterby=rejected" class="btr-sidebar-link"><i class="fa fa-times-circle"/> Rejected</a></li>
+            </ul>
+        </div>
+    </template>
+
     <template id="portal_my_business_trips" name="My Business Trip Requests">
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs_searchbar" t-value="True"/>
             <div class="btr-page">
+                <div class="btr-layout">
+                    <t t-call="business_trip_request.portal_btr_sidebar">
+                        <t t-set="active" t-value="'dashboard' if not filterby or filterby == 'all' else 'all'"/>
+                    </t>
+                    <div class="btr-content">
                 <t t-call="portal.portal_searchbar">
                     <t t-set="title">Business Trips</t>
                 </t>
@@ -121,6 +163,8 @@
                         <t t-call="portal.pager"/>
                     </div>
                 </t>
+                    </div>
+                </div>
             </div>
         </t>
     </template>
@@ -129,6 +173,11 @@
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs_searchbar" t-value="False"/>
             <div class="btr-page">
+                <div class="btr-layout">
+                    <t t-call="business_trip_request.portal_btr_sidebar">
+                        <t t-set="active" t-value="'new'"/>
+                    </t>
+                    <div class="btr-content">
                 <div class="clearfix mb-3">
                     <ol class="breadcrumb float-start">
                         <li class="breadcrumb-item"><a href="/my/business-trips">Business Trips</a></li>
@@ -297,6 +346,8 @@
                         </button>
                     </div>
                 </form>
+                    </div>
+                </div>
             </div>
             <script>
                 function btrFilterStates() {
@@ -323,6 +374,11 @@
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs_searchbar" t-value="False"/>
             <div class="btr-page">
+                <div class="btr-layout">
+                    <t t-call="business_trip_request.portal_btr_sidebar">
+                        <t t-set="active" t-value="'all'"/>
+                    </t>
+                    <div class="btr-content">
                 <div class="clearfix mb-3">
                     <ol class="breadcrumb float-start">
                         <li class="breadcrumb-item"><a href="/my/business-trips">Business Trips</a></li>
@@ -465,6 +521,8 @@
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
                     </div>
                 </div>
             </div>

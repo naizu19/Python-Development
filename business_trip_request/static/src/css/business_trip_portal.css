@@ -139,6 +139,110 @@
     padding: 0.65rem 0.9rem;
 }
 
+/* Sidebar layout */
+.btr-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.75rem;
+}
+.btr-sidebar {
+    flex: 0 0 230px;
+    position: sticky;
+    top: 1rem;
+    background: var(--btr-surface);
+    border: 1px solid var(--btr-border);
+    border-radius: var(--btr-radius);
+    padding: 1.1rem 0.9rem;
+    box-shadow: 0 0.125rem 0.5rem rgba(20, 40, 45, 0.05);
+}
+.btr-content {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.btr-sidebar-brand {
+    font-weight: 700;
+    color: var(--btr-primary-dark);
+    font-size: 1.02rem;
+    padding: 0 0.5rem 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.btr-sidebar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.btr-sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 0.5rem;
+    color: #495057;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background-color 0.12s ease, color 0.12s ease;
+}
+.btr-sidebar-link i {
+    width: 1.1rem;
+    text-align: center;
+    color: var(--btr-primary);
+}
+.btr-sidebar-link:hover {
+    background: var(--btr-surface-muted);
+    color: var(--btr-primary-dark);
+}
+.btr-sidebar-link.active {
+    background: var(--btr-primary);
+    color: #fff;
+}
+.btr-sidebar-link.active i {
+    color: #fff;
+}
+.btr-sidebar-divider {
+    height: 1px;
+    background: var(--btr-border);
+    margin: 0.9rem 0.5rem;
+}
+.btr-sidebar-subtitle {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #9aa5ab;
+    padding: 0 0.6rem 0.4rem;
+    font-weight: 600;
+}
+@media (max-width: 900px) {
+    .btr-layout {
+        flex-direction: column;
+    }
+    .btr-sidebar {
+        flex: 1 1 auto;
+        width: 100%;
+        position: static;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.25rem 0.5rem;
+    }
+    .btr-sidebar-brand {
+        width: 100%;
+        padding-bottom: 0.5rem;
+    }
+    .btr-sidebar-divider {
+        display: none;
+    }
+    .btr-sidebar-subtitle {
+        width: 100%;
+    }
+    .btr-sidebar-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+}
+
 /* Form sections */
 .btr-page .card.btr-form-card {
     border: 1px solid var(--btr-border);
