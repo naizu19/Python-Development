@@ -347,6 +347,13 @@ class BusinessTripRequest(models.Model):
         for rec in self:
             if rec.state != "hr_review":
                 raise UserError(_("Allowance can only be calculated during HR Review."))
+            if rec.trip_type == "domestic" and not rec.is_formal_assignment:
+                raise UserError(
+                    _("This is a Short Domestic Business Trip (below the formal "
+                      "assignment distance threshold). It uses the Short Trip Daily "
+                      "Allowance (%s), not the percentage-based HR calculation.")
+                    % rec.short_trip_daily_amount
+                )
             rule = rec._find_allowance_rule()
             if not rule:
                 raise UserError(
