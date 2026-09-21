@@ -148,18 +148,6 @@ class BusinessTripRequest(models.Model):
     def _compute_trip_type(self):
         for rec in self:
             home_country = rec.company_id.country_id
-            print(
-                "BTR trip_type debug: record=%s company=%r (id=%s) "
-                "company.country=%r (id=%s) destination=%r (id=%s)" % (
-                    rec.id,
-                    rec.company_id.name,
-                    rec.company_id.id,
-                    home_country.name if home_country else home_country,
-                    home_country.id if home_country else home_country,
-                    rec.destination_country_id.name if rec.destination_country_id else rec.destination_country_id,
-                    rec.destination_country_id.id if rec.destination_country_id else rec.destination_country_id,
-                )
-            )
             if rec.destination_country_id and home_country:
                 if rec.destination_country_id == home_country:
                     rec.trip_type = "domestic"
