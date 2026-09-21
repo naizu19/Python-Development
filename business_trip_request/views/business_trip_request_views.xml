@@ -19,6 +19,9 @@
                             invisible="not can_current_user_approve or state != 'pending_approval'"/>
                     <button name="action_calculate_allowance" string="Calculate Allowance" type="object"
                             class="btn-primary" groups="business_trip_request.group_business_trip_hr"
+                            invisible="state != 'hr_review' or (trip_type == 'domestic' and not is_formal_assignment)"/>
+                    <button name="action_approve_allowance" string="Approve" type="object"
+                            class="btn-primary" groups="business_trip_request.group_business_trip_hr"
                             invisible="state != 'hr_review'"/>
                     <button name="action_complete" string="Complete" type="object"
                             class="btn-primary"
@@ -32,7 +35,7 @@
                 <sheet>
                     <div class="oe_title">
                         <h1><field name="name" readonly="1"/></h1>
-                        <div class="text-muted" invisible="not current_step_name or state not in ('pending_approval',)">
+                        <div class="text-muted" invisible="not current_step_name or state not in ('pending_approval', 'hr_review')">
                             Currently pending with: <field name="current_step_name" readonly="1" nolabel="1" class="oe_inline"/>
                         </div>
                     </div>

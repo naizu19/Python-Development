@@ -485,7 +485,22 @@ class BusinessTripRequest(models.Model):
                     "net": rec.net_allowance,
                 }
             )
+
+    def action_approve_allowance(self):
+        for rec in self:
+            if rec.state != "hr_review":
+                raise UserError(_("Allowance approval is only available during HR Review."))
+            if rec.trip_type == "domestic" and not rec.is_formal_assignment:
+                if not rec.short_trip_daily_amount:
+                    raise UserError(
+                        _("The Short Trip Daily Allowance is not available yet.")
+                    )
+            elif not rec.net_allowance:
+                raise UserError(
+                    _("Please calculate the allowance before approving it.")
+                )
             rec.state = "allowance_calculated"
+            rec.message_post(body=_("Allowance approved by %s.") % self.env.user.name)
 
     # ---------------------------------------------------------------
     # Trip report
@@ -558,8 +573,11 @@ class BusinessTripRequest(models.Model):
     @api.depends("approval_line_ids.state", "state")
     def _compute_current_step_name(self):
         for rec in self:
-            line = rec._current_approval_line()
-            rec.current_step_name = line.name if line else False
+            if rec.state == "hr_review":
+                rec.current_step_name = _("HR")
+            else:
+                line = rec._current_approval_line()
+                rec.current_step_name = line.name if line else False
 
     def _is_hr_user(self, user):
         hr_group = self.env.ref(
@@ -587,7 +605,7 @@ class BusinessTripRequest(models.Model):
             ("draft", "Draft"),
             ("pending_approval", "Pending Approval"),
             ("hr_review", "HR Review"),
-            ("allowance_calculated", "Allowance Calculated"),
+            ("allowance_calculated", "HR Approved"),
             ("completed", "Completed"),
             ("rejected", "Rejected"),
             ("returned", "Returned for Modification"),
