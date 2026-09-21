@@ -38,6 +38,9 @@
                     <button name="action_process_settlement" string="Process Settlement" type="object"
                             class="btn-primary" groups="business_trip_request.group_business_trip_finance"
                             invisible="state != 'settlement'"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            confirm="Are you sure you want to cancel this request?"
+                            invisible="state not in ('draft', 'pending_approval', 'hr_review', 'returned')"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,pending_approval,hr_review,ready_for_travel,completed"/>
                 </header>

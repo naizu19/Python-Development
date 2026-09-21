@@ -596,6 +596,7 @@ class BusinessTripRequest(models.Model):
             ("completed", "Completed"),
             ("rejected", "Rejected"),
             ("returned", "Returned for Modification"),
+            ("cancelled", "Cancelled"),
         ],
         default="draft",
         required=True,
@@ -814,6 +815,14 @@ class BusinessTripRequest(models.Model):
             if rec.state != "returned":
                 raise UserError(_("Only requests returned for modification can be resubmitted."))
             rec.state = "draft"
+
+    def action_cancel(self):
+        for rec in self:
+            if rec.state in ("completed", "cancelled", "rejected"):
+                raise UserError(_("This request can no longer be cancelled."))
+            rec.approval_line_ids.sudo().unlink()
+            rec.state = "cancelled"
+            rec.message_post(body=_("Request cancelled by %s.") % self.env.user.name)
 
     def action_mark_ready_for_travel(self):
         for rec in self:

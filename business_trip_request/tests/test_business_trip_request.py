@@ -100,8 +100,8 @@ class TestBusinessTripRequest(TransactionCase):
         trip = self._make_request()
         trip.action_submit()
         self.assertEqual(trip.state, "pending_approval")
-        # Default configuration: Direct Manager, Department Manager, CEO, HR Review
-        self.assertEqual(len(trip.approval_line_ids), 4)
+        # Default configuration: Manager, CEO, HR Review
+        self.assertEqual(len(trip.approval_line_ids), 3)
 
     # ------------------------------------------------------------
     # Rule 17: No overnight stay => reduced allowance (configurable factor)
@@ -282,10 +282,9 @@ class TestBusinessTripRequest(TransactionCase):
         trip = self._make_request()
         trip.action_submit()
         self.assertEqual(trip.state, "pending_approval")
-        self.assertEqual(len(trip.approval_line_ids), 4)
+        self.assertEqual(len(trip.approval_line_ids), 3)
 
-        # Direct Manager, Department Manager, CEO
-        trip.action_approve()
+        # Manager, CEO
         trip.action_approve()
         trip.action_approve()
         self.assertEqual(trip.state, "pending_approval")

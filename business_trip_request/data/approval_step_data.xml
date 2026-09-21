@@ -1,26 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="approval_step_direct_manager" model="business.trip.approval.step">
-        <field name="name">Direct Manager</field>
+        <field name="name">Manager</field>
         <field name="sequence">10</field>
         <field name="source">employee_manager</field>
     </record>
 
-    <record id="approval_step_department_manager" model="business.trip.approval.step">
-        <field name="name">Department Manager</field>
-        <field name="sequence">20</field>
-        <field name="source">department_manager</field>
-    </record>
-
     <record id="approval_step_ceo" model="business.trip.approval.step">
         <field name="name">CEO</field>
-        <field name="sequence">30</field>
+        <field name="sequence">20</field>
         <field name="source">ceo</field>
     </record>
 
     <record id="approval_step_hr" model="business.trip.approval.step">
         <field name="name">HR Review</field>
-        <field name="sequence">40</field>
+        <field name="sequence">30</field>
         <field name="source">group</field>
         <field name="group_id" ref="group_business_trip_hr"/>
     </record>
