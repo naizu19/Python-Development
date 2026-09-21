@@ -434,6 +434,10 @@ class BusinessTripRequest(models.Model):
                       "Allowance (%s), not the percentage-based HR calculation.")
                     % rec.short_trip_daily_amount
                 )
+            if not rec.basic_salary:
+                raise UserError(
+                    _("Please enter the Monthly Basic Salary before calculating the allowance.")
+                )
             rule = rec._find_allowance_rule()
             if not rule:
                 raise UserError(
