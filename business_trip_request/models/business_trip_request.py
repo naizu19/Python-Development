@@ -147,23 +147,25 @@ class BusinessTripRequest(models.Model):
     @api.depends("destination_country_id", "company_id", "company_id.country_id")
     def _compute_trip_type(self):
         for rec in self:
-            home_country = rec.company_id.country_id
-            if rec.destination_country_id and home_country:
-                if rec.destination_country_id == home_country:
-                    rec.trip_type = "domestic"
-                    rec.region = False
-                else:
-                    rec.trip_type = "international"
-                    code = rec.destination_country_id.code
-                    if code in ARAB_COUNTRY_CODES:
-                        rec.region = rec.region or "arabic"
-                    elif code in EUROPE_JAPAN_CODES:
-                        rec.region = rec.region or "europe_japan"
-                    else:
-                        rec.region = rec.region or "asian"
-            else:
+            dest_code = rec.destination_country_id.code or False
+            home_code = rec.company_id.country_id.code or False
+
+            if not dest_code or not home_code:
                 rec.trip_type = False
                 rec.region = False
+                continue
+
+            if dest_code == home_code:
+                rec.trip_type = "domestic"
+                rec.region = False
+            else:
+                rec.trip_type = "international"
+                if dest_code in ARAB_COUNTRY_CODES:
+                    rec.region = rec.region or "arabic"
+                elif dest_code in EUROPE_JAPAN_CODES:
+                    rec.region = rec.region or "europe_japan"
+                else:
+                    rec.region = rec.region or "asian"
 
     @api.depends("destination_city", "date_start",
                  "company_id.business_trip_peak_cities",
