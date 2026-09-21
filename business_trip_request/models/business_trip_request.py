@@ -282,6 +282,21 @@ class BusinessTripRequest(models.Model):
                     _("⚠ The duration of a single assignment should not exceed %s working "
                       "days according to the policy.") % max_days
                 )
+            if rec.employee_id and rec.trip_type and not rec.employee_id.frequent_traveler:
+                rule = rec._find_allowance_rule()
+                if rule and rule.max_days:
+                    ytd = (
+                        rec.employee_id.international_days_ytd
+                        if rec.trip_type == "international"
+                        else rec.employee_id.domestic_days_ytd
+                    )
+                    projected = ytd + (rec.total_days or 0)
+                    if projected > rule.max_days:
+                        messages.append(
+                            _("⚠ This employee will reach %s %s travel days this year "
+                              "(limit: %s) — consider flagging them as a Frequent Traveler.")
+                            % (projected, rec.trip_type, rule.max_days)
+                        )
             rec.validation_warning_ids = "\n".join(messages)
 
     # ---------------------------------------------------------------

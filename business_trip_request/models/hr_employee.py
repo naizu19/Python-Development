@@ -1,8 +1,38 @@
+from datetime import date
+
 from odoo import fields, models
 
 
 class HrEmployee(models.Model):
     _inherit = "hr.employee"
+
+    domestic_days_ytd = fields.Integer(
+        string="Domestic Travel Days (This Year)",
+        compute="_compute_travel_days_ytd",
+        help="Total domestic business trip days this calendar year, across "
+        "requests that are not draft/rejected/returned.",
+    )
+    international_days_ytd = fields.Integer(
+        string="International Travel Days (This Year)",
+        compute="_compute_travel_days_ytd",
+        help="Total international business trip days this calendar year, "
+        "across requests that are not draft/rejected/returned.",
+    )
+
+    def _compute_travel_days_ytd(self):
+        year_start = date(fields.Date.context_today(self).year, 1, 1)
+        for employee in self:
+            trips = self.env["business.trip.request"].search([
+                ("employee_id", "=", employee.id),
+                ("date_start", ">=", year_start),
+                ("state", "not in", ["draft", "rejected", "returned"]),
+            ])
+            employee.domestic_days_ytd = sum(
+                trips.filtered(lambda t: t.trip_type == "domestic").mapped("total_days")
+            )
+            employee.international_days_ytd = sum(
+                trips.filtered(lambda t: t.trip_type == "international").mapped("total_days")
+            )
 
     is_senior_management = fields.Boolean(
         string="Senior Management (President/VP/Business Advisor)",

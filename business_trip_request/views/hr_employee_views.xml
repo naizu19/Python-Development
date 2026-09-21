@@ -11,6 +11,8 @@
                         <field name="is_senior_management"/>
                         <field name="frequent_traveler"/>
                         <field name="travel_class_id"/>
+                        <field name="domestic_days_ytd" readonly="1"/>
+                        <field name="international_days_ytd" readonly="1"/>
                     </group>
                 </page>
             </xpath>
