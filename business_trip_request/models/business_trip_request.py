@@ -314,9 +314,11 @@ class BusinessTripRequest(models.Model):
 
     @api.depends(
         "basic_salary", "trip_type", "region", "is_senior_management",
+        "is_peak_period",
         "total_days", "extra_days", "overnight_stay", "need_transportation",
         "is_formal_assignment", "short_trip_daily_amount",
         "company_id.business_trip_senior_mgmt_adjustment_pct",
+        "company_id.business_trip_peak_period_adjustment_pct",
         "company_id.business_trip_no_overnight_factor",
         "company_id.business_trip_pct_transportation",
         "company_id.business_trip_transportation_deduction_pct",
@@ -334,6 +336,8 @@ class BusinessTripRequest(models.Model):
             rate = rule.percentage
             if rec.is_senior_management:
                 rate += company.business_trip_senior_mgmt_adjustment_pct or 20.0
+            if rec.is_peak_period:
+                rate += company.business_trip_peak_period_adjustment_pct or 15.0
             base = rec.basic_salary * (rate / 100.0)
             if rule.min_amount:
                 base = max(base, rule.min_amount)
@@ -391,7 +395,9 @@ class BusinessTripRequest(models.Model):
     )
 
     @api.depends("total_days", "is_formal_assignment", "trip_type", "company_id",
+                 "is_peak_period",
                  "company_id.business_trip_short_domestic_rate",
+                 "company_id.business_trip_peak_period_adjustment_pct",
                  "company_id.business_trip_no_overnight_factor", "overnight_stay")
     def _compute_short_trip(self):
         for rec in self:
@@ -399,7 +405,11 @@ class BusinessTripRequest(models.Model):
                 rate = rec.company_id.business_trip_short_domestic_rate or 150.0
                 no_overnight_factor = rec.company_id.business_trip_no_overnight_factor or 0.5
                 factor = 1.0 if rec.overnight_stay else no_overnight_factor
-                rec.short_trip_daily_amount = rate * rec.total_days * factor
+                amount = rate * rec.total_days * factor
+                if rec.is_peak_period:
+                    peak_pct = rec.company_id.business_trip_peak_period_adjustment_pct or 15.0
+                    amount *= 1 + (peak_pct / 100.0)
+                rec.short_trip_daily_amount = amount
             else:
                 rec.short_trip_daily_amount = 0.0
 
@@ -433,6 +443,8 @@ class BusinessTripRequest(models.Model):
             rate = rule.percentage
             if rec.is_senior_management:
                 rate += company.business_trip_senior_mgmt_adjustment_pct or 20.0
+            if rec.is_peak_period:
+                rate += company.business_trip_peak_period_adjustment_pct or 15.0
             rec.applicable_rate = rate
 
             base = rec.basic_salary * (rate / 100.0)

@@ -31,6 +31,11 @@ class ResCompany(models.Model):
     business_trip_senior_mgmt_adjustment_pct = fields.Float(
         string="Senior Management Adjustment (%)", default=20.0
     )
+    business_trip_peak_period_adjustment_pct = fields.Float(
+        string="Peak Period Adjustment (%)", default=15.0,
+        help="Extra percentage added on top of the base allowance rate when "
+        "the trip's destination/date match a configured Peak Period.",
+    )
     business_trip_formal_distance_km = fields.Float(
         string="Formal Assignment Minimum Distance (km)", default=300.0
     )

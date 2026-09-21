@@ -234,6 +234,14 @@
 
                         </setting>
 
+                        <setting id="business_trip_peak_period_adjustment_pct"
+                                 string="Peak Period Adjustment"
+                                 help="Extra percentage added to the allowance rate when the trip's city and date match a Peak Period.">
+
+                            <field name="business_trip_peak_period_adjustment_pct"/>
+
+                        </setting>
+
                     </block>
 
                 </app>

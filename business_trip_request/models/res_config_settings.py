@@ -30,6 +30,9 @@ class ResConfigSettings(models.TransientModel):
     business_trip_senior_mgmt_adjustment_pct = fields.Float(
         related="company_id.business_trip_senior_mgmt_adjustment_pct", readonly=False
     )
+    business_trip_peak_period_adjustment_pct = fields.Float(
+        related="company_id.business_trip_peak_period_adjustment_pct", readonly=False
+    )
     business_trip_formal_distance_km = fields.Float(
         related="company_id.business_trip_formal_distance_km", readonly=False
     )
