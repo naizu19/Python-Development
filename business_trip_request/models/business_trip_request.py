@@ -265,7 +265,7 @@ class BusinessTripRequest(models.Model):
             )
             if rec.date_start:
                 working_days = _count_working_days(
-                    fields.Date.context_today(rec), rec.date_start
+                    fields.Date.context_today(rec) + timedelta(days=1), rec.date_start
                 )
                 min_days = rec.company_id.business_trip_min_advance_days or 1
                 if working_days >= min_days:
@@ -594,7 +594,7 @@ class BusinessTripRequest(models.Model):
                 raise UserError(_("Assignment duration (start/end dates) is mandatory."))
             min_days = rec.company_id.business_trip_min_advance_days or 1
             working_days = _count_working_days(
-                fields.Date.context_today(rec), rec.date_start
+                fields.Date.context_today(rec) + timedelta(days=1), rec.date_start
             )
             if working_days < min_days:
                 raise UserError(
