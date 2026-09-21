@@ -600,6 +600,7 @@ class BusinessTripRequest(models.Model):
                 )
 
     def action_submit(self):
+        frequent_traveler_alert = False
         for rec in self:
             if not rec.purpose or not rec.objectives:
                 raise UserError(
@@ -660,6 +661,38 @@ class BusinessTripRequest(models.Model):
             first_line = rec._current_approval_line()
             if first_line:
                 rec._notify_line_approver(first_line)
+
+            if rec.employee_id and rec.trip_type and not rec.employee_id.frequent_traveler:
+                rule = rec._find_allowance_rule()
+                if rule and rule.max_days:
+                    ytd = (
+                        rec.employee_id.international_days_ytd
+                        if rec.trip_type == "international"
+                        else rec.employee_id.domestic_days_ytd
+                    )
+                    if ytd >= rule.max_days:
+                        frequent_traveler_alert = _(
+                            "%(employee)s has now reached %(ytd)s %(trip_type)s travel "
+                            "days this year (limit: %(limit)s). Consider flagging them "
+                            "as a Frequent Traveler."
+                        ) % {
+                            "employee": rec.employee_id.name,
+                            "ytd": ytd,
+                            "trip_type": rec.trip_type,
+                            "limit": rule.max_days,
+                        }
+
+        if frequent_traveler_alert:
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("Frequent Traveler Threshold Reached"),
+                    "message": frequent_traveler_alert,
+                    "type": "warning",
+                    "sticky": True,
+                },
+            }
 
     def action_approve(self):
         for rec in self:
