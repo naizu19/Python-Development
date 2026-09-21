@@ -116,6 +116,7 @@
                             </group>
                             <group string="Cash Advance">
                                 <field name="advance_required"/>
+                                <field name="expected_allowance" readonly="1" invisible="not advance_required"/>
                                 <field name="requested_advance" invisible="not advance_required"/>
                                 <field name="payment_timing"/>
                             </group>

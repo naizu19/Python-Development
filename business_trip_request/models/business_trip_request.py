@@ -304,14 +304,64 @@ class BusinessTripRequest(models.Model):
     # ---------------------------------------------------------------
     advance_required = fields.Boolean(string="Advance Required?")
     requested_advance = fields.Monetary(string="Requested Advance")
+    expected_allowance = fields.Monetary(
+        string="Expected Allowance",
+        compute="_compute_expected_allowance",
+        help="Live estimate of the applicable assignment allowance, available "
+        "before HR performs the official calculation - used to size an "
+        "advance request.",
+    )
 
-    @api.constrains("advance_required", "requested_advance", "net_allowance")
+    @api.depends(
+        "basic_salary", "trip_type", "region", "is_senior_management",
+        "total_days", "extra_days", "overnight_stay", "need_transportation",
+        "is_formal_assignment", "short_trip_daily_amount",
+        "company_id.business_trip_senior_mgmt_adjustment_pct",
+        "company_id.business_trip_no_overnight_factor",
+        "company_id.business_trip_pct_transportation",
+        "company_id.business_trip_transportation_deduction_pct",
+    )
+    def _compute_expected_allowance(self):
+        for rec in self:
+            if rec.trip_type == "domestic" and not rec.is_formal_assignment:
+                rec.expected_allowance = rec.short_trip_daily_amount
+                continue
+            rule = rec._find_allowance_rule()
+            if not rule or not rec.basic_salary:
+                rec.expected_allowance = 0.0
+                continue
+            company = rec.company_id
+            rate = rule.percentage
+            if rec.is_senior_management:
+                rate += company.business_trip_senior_mgmt_adjustment_pct or 20.0
+            base = rec.basic_salary * (rate / 100.0)
+            if rule.min_amount:
+                base = max(base, rule.min_amount)
+            if rule.max_amount:
+                base = min(base, rule.max_amount)
+            eligible_days = rec.total_days + rec.extra_days
+            no_overnight_factor = company.business_trip_no_overnight_factor or 0.5
+            overnight_factor = 1.0 if rec.overnight_stay else no_overnight_factor
+            gross = base * eligible_days * overnight_factor
+            deduction = 0.0
+            if rec.need_transportation:
+                pct_transportation = (company.business_trip_pct_transportation or 30.0) / 100.0
+                transportation_component = gross * pct_transportation
+                ded_pct = company.business_trip_transportation_deduction_pct or 20.0
+                deduction = transportation_component * (ded_pct / 100.0)
+            rec.expected_allowance = gross - deduction
+
+    @api.constrains("advance_required", "requested_advance", "expected_allowance")
     def _check_requested_advance(self):
         for rec in self:
-            if rec.advance_required and rec.requested_advance > rec.net_allowance > 0:
+            if (
+                rec.advance_required
+                and rec.expected_allowance > 0
+                and rec.requested_advance > rec.expected_allowance
+            ):
                 raise ValidationError(
                     _("The requested advance must not exceed the expected applicable "
-                      "allowance (%s).") % rec.net_allowance
+                      "allowance (%s).") % rec.expected_allowance
                 )
 
     # ---------------------------------------------------------------
