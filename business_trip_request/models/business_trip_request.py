@@ -247,6 +247,10 @@ class BusinessTripRequest(models.Model):
     @api.depends(
         "purpose", "objectives", "date_start", "date_end", "distance_km",
         "trip_type", "need_transportation", "total_days",
+        "company_id.business_trip_min_advance_days",
+        "company_id.business_trip_formal_distance_km",
+        "company_id.business_trip_transportation_deduction_pct",
+        "company_id.business_trip_max_single_days",
     )
     def _compute_validation_warnings(self):
         for rec in self:
@@ -329,7 +333,8 @@ class BusinessTripRequest(models.Model):
         default="after_trip",
     )
 
-    @api.depends("total_days", "is_formal_assignment", "trip_type", "company_id")
+    @api.depends("total_days", "is_formal_assignment", "trip_type", "company_id",
+                 "company_id.business_trip_short_domestic_rate")
     def _compute_short_trip(self):
         for rec in self:
             if rec.trip_type == "domestic" and not rec.is_formal_assignment:
