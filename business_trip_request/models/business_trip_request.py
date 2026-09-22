@@ -563,6 +563,9 @@ class BusinessTripRequest(models.Model):
     settlement_date = fields.Date()
     settlement_amount = fields.Monetary(compute="_compute_settlement_amount", store=True)
     processed_by = fields.Many2one("res.users")
+    transaction_ids = fields.One2many(
+        "business.trip.transaction", "request_id", string="Transaction History"
+    )
 
     @api.depends("net_allowance", "requested_advance", "advance_required")
     def _compute_settlement_amount(self):
@@ -621,7 +624,11 @@ class BusinessTripRequest(models.Model):
             ("draft", "Draft"),
             ("pending_approval", "Pending Approval"),
             ("hr_review", "Waiting for HR"),
-            ("allowance_calculated", "Done"),
+            ("allowance_calculated", "Ready for Travel"),
+            ("trip_in_progress", "Trip In Progress"),
+            ("trip_report_required", "Trip Report Required"),
+            ("report_under_hr_review", "Report Under HR Review"),
+            ("pending_settlement", "Pending Settlement"),
             ("completed", "Completed"),
             ("rejected", "Rejected"),
             ("returned", "Returned for Modification"),
@@ -850,23 +857,92 @@ class BusinessTripRequest(models.Model):
             rec.state = "cancelled"
             rec.message_post(body=_("Request cancelled by %s.") % self.env.user.name)
 
-    def action_complete(self):
+    def action_start_trip(self):
         for rec in self:
             if rec.state != "allowance_calculated":
-                raise UserError(_("Allowance must be calculated before this request can be completed."))
+                raise UserError(
+                    _("The trip can only be started once it is Ready for Travel.")
+                )
+            if not rec.actual_date_start:
+                rec.actual_date_start = fields.Date.context_today(rec)
+            rec.state = "trip_in_progress"
+            rec.message_post(body=_("Trip started by %s.") % self.env.user.name)
+
+    def action_end_trip(self):
+        for rec in self:
+            if rec.state != "trip_in_progress":
+                raise UserError(_("The trip can only be ended while it is in progress."))
+            if not rec.actual_date_end:
+                rec.actual_date_end = fields.Date.context_today(rec)
+            rec.state = "trip_report_required"
+            rec.message_post(
+                body=_("Trip ended by %s. Please submit the trip report.") % self.env.user.name
+            )
+
+    def action_submit_trip_report(self):
+        for rec in self:
+            if rec.state != "trip_report_required":
+                raise UserError(
+                    _("The trip report can only be submitted after the trip has ended.")
+                )
             if not rec.actual_date_start or not rec.actual_date_end or not rec.work_summary:
                 raise UserError(
                     _("Please enter the trip report (Actual Start Date, Actual Return "
-                      "Date and Summary of Work Performed) before completing this "
-                      "request.")
+                      "Date and Summary of Work Performed) before submitting it.")
                 )
-            rec.write(
-                {
-                    "state": "completed",
-                    "report_state": "approved",
-                    "settlement_state": "processed",
-                    "settlement_date": fields.Date.context_today(rec),
-                    "processed_by": self.env.user.id,
-                }
+            rec.write({"report_state": "submitted", "state": "report_under_hr_review"})
+            rec.message_post(body=_("Trip report submitted by %s.") % self.env.user.name)
+            hr_group = self.env.ref(
+                "business_trip_request.group_business_trip_hr", raise_if_not_found=False
             )
-            rec.message_post(body=_("Trip report recorded. Request completed by %s.") % self.env.user.name)
+            if hr_group:
+                for user in hr_group.users:
+                    rec.activity_schedule(
+                        "mail.mail_activity_data_todo", user_id=user.id,
+                        summary=_("Review Trip Report for %s") % rec.name,
+                    )
+
+    def action_approve_report(self):
+        for rec in self:
+            if rec.state != "report_under_hr_review":
+                raise UserError(
+                    _("The trip report can only be approved while it is under HR review.")
+                )
+            rec.write({"report_state": "approved", "state": "pending_settlement"})
+            rec.message_post(
+                body=_("Trip report approved by %s. Routed to Finance for settlement.")
+                % self.env.user.name
+            )
+            finance_group = self.env.ref(
+                "business_trip_request.group_business_trip_finance", raise_if_not_found=False
+            )
+            if finance_group:
+                for user in finance_group.users:
+                    rec.activity_schedule(
+                        "mail.mail_activity_data_todo", user_id=user.id,
+                        summary=_("Process Settlement for %s") % rec.name,
+                    )
+
+    def action_process_settlement(self):
+        for rec in self:
+            if rec.state != "pending_settlement":
+                raise UserError(
+                    _("Settlement can only be processed once the trip report has been approved.")
+                )
+            rec.write({
+                "settlement_state": "processed",
+                "settlement_date": fields.Date.context_today(rec),
+                "processed_by": self.env.user.id,
+                "state": "completed",
+            })
+            self.env["business.trip.transaction"].create({
+                "request_id": rec.id,
+                "transaction_type": "settlement",
+                "amount": rec.settlement_amount,
+                "date": fields.Date.context_today(rec),
+                "processed_by": self.env.user.id,
+            })
+            rec.message_post(
+                body=_("Settlement processed by %s. Amount: %s.")
+                % (self.env.user.name, rec.settlement_amount)
+            )

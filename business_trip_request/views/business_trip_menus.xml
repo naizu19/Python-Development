@@ -14,6 +14,10 @@
               parent="menu_business_trip_hr" action="action_business_trip_request_hr"
               sequence="10" groups="business_trip_request.group_business_trip_hr,business_trip_request.group_business_trip_finance"/>
 
+    <menuitem id="menu_business_trip_transaction" name="Transaction History"
+              parent="menu_business_trip_hr" action="action_business_trip_transaction"
+              sequence="20" groups="business_trip_request.group_business_trip_hr,business_trip_request.group_business_trip_finance"/>
+
     <menuitem id="menu_business_trip_configuration" name="Configuration"
               parent="menu_business_trip_root" sequence="30"
               groups="business_trip_request.group_business_trip_hr"/>

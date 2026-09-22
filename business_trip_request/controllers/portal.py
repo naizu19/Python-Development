@@ -32,7 +32,11 @@ class BusinessTripPortal(CustomerPortal):
             },
             "in_progress": {
                 "label": _("In Progress"),
-                "domain": [("state", "=", "allowance_calculated")],
+                "domain": [(
+                    "state", "in",
+                    ["allowance_calculated", "trip_in_progress", "trip_report_required",
+                     "report_under_hr_review", "pending_settlement"],
+                )],
             },
             "completed": {"label": _("Completed"), "domain": [("state", "=", "completed")]},
             "rejected": {"label": _("Rejected"), "domain": [("state", "=", "rejected")]},
@@ -45,6 +49,10 @@ class BusinessTripPortal(CustomerPortal):
             "pending_approval": "warning",
             "hr_review": "info",
             "allowance_calculated": "info",
+            "trip_in_progress": "primary",
+            "trip_report_required": "warning",
+            "report_under_hr_review": "info",
+            "pending_settlement": "info",
             "completed": "success",
             "rejected": "danger",
             "cancelled": "secondary",
@@ -263,6 +271,40 @@ class BusinessTripPortal(CustomerPortal):
         return request.redirect("/my/business-trips/%s" % request_id)
 
     @http.route(
+        ["/my/business-trips/<int:request_id>/start"],
+        type="http",
+        auth="user",
+        website=True,
+        methods=["POST"],
+    )
+    def portal_business_trip_start(self, request_id, **kw):
+        trip = self._btr_check_access(request_id)
+        try:
+            trip.sudo().action_start_trip()
+        except Exception as exc:  # noqa: BLE001 - surfaced to the portal page
+            return request.redirect(
+                "/my/business-trips/%s?error=%s" % (request_id, str(exc))
+            )
+        return request.redirect("/my/business-trips/%s" % request_id)
+
+    @http.route(
+        ["/my/business-trips/<int:request_id>/end"],
+        type="http",
+        auth="user",
+        website=True,
+        methods=["POST"],
+    )
+    def portal_business_trip_end(self, request_id, **kw):
+        trip = self._btr_check_access(request_id)
+        try:
+            trip.sudo().action_end_trip()
+        except Exception as exc:  # noqa: BLE001 - surfaced to the portal page
+            return request.redirect(
+                "/my/business-trips/%s?error=%s" % (request_id, str(exc))
+            )
+        return request.redirect("/my/business-trips/%s" % request_id)
+
+    @http.route(
         ["/my/business-trips/<int:request_id>/report"],
         type="http",
         auth="user",
@@ -284,7 +326,7 @@ class BusinessTripPortal(CustomerPortal):
             }
         )
         try:
-            trip.sudo().action_complete()
+            trip.sudo().action_submit_trip_report()
         except Exception as exc:  # noqa: BLE001 - surfaced to the portal page
             return request.redirect(
                 "/my/business-trips/%s?error=%s" % (request_id, str(exc))

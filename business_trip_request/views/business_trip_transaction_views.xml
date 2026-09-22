@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_business_trip_transaction_tree" model="ir.ui.view">
+        <field name="name">business.trip.transaction.tree</field>
+        <field name="model">business.trip.transaction</field>
+        <field name="arch" type="xml">
+            <tree create="0" edit="0" delete="0">
+                <field name="date"/>
+                <field name="request_id"/>
+                <field name="employee_id"/>
+                <field name="transaction_type"/>
+                <field name="amount" sum="Total"/>
+                <field name="processed_by"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_business_trip_transaction_search" model="ir.ui.view">
+        <field name="name">business.trip.transaction.search</field>
+        <field name="model">business.trip.transaction</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="request_id"/>
+                <field name="employee_id"/>
+                <filter string="Advance Payment" name="advance_payment" domain="[('transaction_type', '=', 'advance_payment')]"/>
+                <filter string="Settlement" name="settlement" domain="[('transaction_type', '=', 'settlement')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Employee" name="group_employee" context="{'group_by': 'employee_id'}"/>
+                    <filter string="Type" name="group_type" context="{'group_by': 'transaction_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_business_trip_transaction" model="ir.actions.act_window">
+        <field name="name">Transaction History</field>
+        <field name="res_model">business.trip.transaction</field>
+        <field name="view_mode">tree</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No transactions recorded yet. Transactions are created automatically
+                when Finance processes a settlement.
+            </p>
+        </field>
+    </record>
+</odoo>

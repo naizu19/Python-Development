@@ -458,7 +458,7 @@
                             </div>
                         </div>
 
-                        <div t-if="trip.state in ('allowance_calculated', 'completed')"
+                        <div t-if="trip.state in ('allowance_calculated', 'trip_in_progress', 'trip_report_required', 'report_under_hr_review', 'pending_settlement', 'completed')"
                              class="btr-card mb-3">
                             <div class="btr-card-header">Allowance</div>
                             <div class="btr-card-body">
@@ -491,17 +491,43 @@
                 </div>
 
                 <div t-if="trip.state == 'allowance_calculated'" class="btr-card mb-3">
+                    <div class="btr-card-body d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Ready for travel. Start the trip when you depart.</span>
+                        <form action="#" t-attf-action="/my/business-trips/#{trip.id}/start" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa fa-play me-1"/> Start Trip
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div t-if="trip.state == 'trip_in_progress'" class="btr-card mb-3">
+                    <div class="btr-card-body d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Trip in progress. End the trip when you return.</span>
+                        <form action="#" t-attf-action="/my/business-trips/#{trip.id}/end" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa fa-stop me-1"/> End Trip
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div t-if="trip.state == 'trip_report_required'" class="btr-card mb-3">
                     <div class="btr-card-header">Business Trip Report</div>
                     <div class="btr-card-body">
                         <form action="#" t-attf-action="/my/business-trips/#{trip.id}/report" method="post" class="row g-3">
                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                             <div class="col-md-6">
                                 <label class="form-label">Actual Start Date *</label>
-                                <input type="date" name="actual_date_start" class="form-control" required="required"/>
+                                <input type="date" name="actual_date_start" class="form-control" required="required"
+                                       t-att-value="trip.actual_date_start"/>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Actual Return Date *</label>
-                                <input type="date" name="actual_date_end" class="form-control" required="required"/>
+                                <input type="date" name="actual_date_end" class="form-control" required="required"
+                                       t-att-value="trip.actual_date_end"/>
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Summary of Work Performed *</label>
@@ -517,11 +543,19 @@
                             </div>
                             <div class="col-12">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fa fa-check me-1"/> Complete Request
+                                    <i class="fa fa-paper-plane me-1"/> Submit Trip Report
                                 </button>
                             </div>
                         </form>
                     </div>
+                </div>
+
+                <div t-if="trip.state == 'report_under_hr_review'" class="alert alert-info">
+                    Trip report submitted — waiting for HR to review it.
+                </div>
+
+                <div t-if="trip.state == 'pending_settlement'" class="alert alert-info">
+                    Trip report approved — waiting for Finance to process the settlement.
                 </div>
                     </div>
                 </div>

@@ -100,8 +100,8 @@ class TestBusinessTripRequest(TransactionCase):
         trip = self._make_request()
         trip.action_submit()
         self.assertEqual(trip.state, "pending_approval")
-        # Default configuration: Manager, CEO, HR Review
-        self.assertEqual(len(trip.approval_line_ids), 3)
+        # Default configuration: Manager, Department Manager, CEO, HR Review
+        self.assertEqual(len(trip.approval_line_ids), 4)
 
     # ------------------------------------------------------------
     # Rule 17: No overnight stay => reduced allowance (configurable factor)
@@ -282,9 +282,10 @@ class TestBusinessTripRequest(TransactionCase):
         trip = self._make_request()
         trip.action_submit()
         self.assertEqual(trip.state, "pending_approval")
-        self.assertEqual(len(trip.approval_line_ids), 3)
+        self.assertEqual(len(trip.approval_line_ids), 4)
 
-        # Manager, CEO
+        # Manager, Department Manager, CEO
+        trip.action_approve()
         trip.action_approve()
         trip.action_approve()
         self.assertEqual(trip.state, "pending_approval")
@@ -343,3 +344,66 @@ class TestBusinessTripRequest(TransactionCase):
         self.assertEqual(trip.approval_line_ids.approver_group_id, finance_group)
         # restore steps for other tests in this class
         steps.write({"active": True})
+
+    # ------------------------------------------------------------
+    # Post-approval lifecycle: Start/End Trip, Trip Report, HR report
+    # review, Finance settlement, Transaction History
+    # ------------------------------------------------------------
+    def _approve_full_chain_to_hr_review(self, trip):
+        trip.action_submit()
+        for _dummy in range(len(trip.approval_line_ids)):
+            trip.action_approve()
+        self.assertEqual(trip.state, "hr_review")
+
+    def test_full_post_approval_lifecycle_creates_transaction(self):
+        trip = self._make_request(distance_km=400, overnight_stay=True, basic_salary=15000)
+        self._approve_full_chain_to_hr_review(trip)
+
+        trip.action_calculate_allowance()
+        trip.action_approve_allowance()
+        self.assertEqual(trip.state, "allowance_calculated")
+
+        trip.action_start_trip()
+        self.assertEqual(trip.state, "trip_in_progress")
+
+        trip.action_end_trip()
+        self.assertEqual(trip.state, "trip_report_required")
+
+        trip.write({"work_summary": "Met the client and closed the deal."})
+        trip.action_submit_trip_report()
+        self.assertEqual(trip.state, "report_under_hr_review")
+        self.assertEqual(trip.report_state, "submitted")
+
+        trip.action_approve_report()
+        self.assertEqual(trip.state, "pending_settlement")
+        self.assertEqual(trip.report_state, "approved")
+
+        trip.action_process_settlement()
+        self.assertEqual(trip.state, "completed")
+        self.assertEqual(trip.settlement_state, "processed")
+        self.assertEqual(len(trip.transaction_ids), 1)
+        self.assertEqual(trip.transaction_ids.transaction_type, "settlement")
+        self.assertEqual(trip.transaction_ids.amount, trip.settlement_amount)
+
+    def test_start_trip_blocked_before_ready_for_travel(self):
+        trip = self._make_request()
+        with self.assertRaises(UserError):
+            trip.action_start_trip()
+
+    def test_submit_trip_report_requires_work_summary(self):
+        trip = self._make_request(distance_km=400, overnight_stay=True, basic_salary=15000)
+        self._approve_full_chain_to_hr_review(trip)
+        trip.action_calculate_allowance()
+        trip.action_approve_allowance()
+        trip.action_start_trip()
+        trip.action_end_trip()
+        with self.assertRaises(UserError):
+            trip.action_submit_trip_report()
+
+    def test_process_settlement_blocked_before_report_approved(self):
+        trip = self._make_request(distance_km=400, overnight_stay=True, basic_salary=15000)
+        self._approve_full_chain_to_hr_review(trip)
+        trip.action_calculate_allowance()
+        trip.action_approve_allowance()
+        with self.assertRaises(UserError):
+            trip.action_process_settlement()

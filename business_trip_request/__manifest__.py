@@ -43,6 +43,7 @@ Implements the full business-assignment lifecycle:
         "views/business_trip_peak_period_views.xml",
         "views/business_trip_approval_step_views.xml",
         "views/business_trip_request_views.xml",
+        "views/business_trip_transaction_views.xml",
         "views/res_config_settings_views.xml",
         "views/business_trip_menus.xml",
         "views/portal_templates.xml",
