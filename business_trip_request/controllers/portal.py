@@ -28,7 +28,12 @@ class BusinessTripPortal(CustomerPortal):
             },
             "pending": {
                 "label": _("Pending Approval"),
-                "domain": [("state", "in", ["pending_approval", "hr_review"])],
+                "domain": [(
+                    "state", "in",
+                    ["submitted", "pending_direct_manager", "direct_manager_approved",
+                     "pending_department_manager", "department_manager_approved",
+                     "pending_ceo", "approved", "pending_approval", "hr_review"],
+                )],
             },
             "in_progress": {
                 "label": _("In Progress"),
@@ -46,6 +51,13 @@ class BusinessTripPortal(CustomerPortal):
         return {
             "draft": "secondary",
             "returned": "warning",
+            "submitted": "secondary",
+            "pending_direct_manager": "warning",
+            "direct_manager_approved": "info",
+            "pending_department_manager": "warning",
+            "department_manager_approved": "info",
+            "pending_ceo": "warning",
+            "approved": "success",
             "pending_approval": "warning",
             "hr_review": "info",
             "allowance_calculated": "info",

@@ -14,6 +14,20 @@ EUROPE_JAPAN_CODES = {
 
 WEEKEND_ISO_WEEKDAYS = {5, 6}  # Friday, Saturday
 
+# Approval step name -> the specific "pending"/"approved" state to show on
+# the main record while that step is active. Any step whose name isn't
+# listed here (e.g. a custom step added in Configuration > Approval Steps)
+# falls back to the generic "pending_approval" state.
+PENDING_STATE_BY_STEP = {
+    "Direct Manager": "pending_direct_manager",
+    "Department Manager": "pending_department_manager",
+    "CEO": "pending_ceo",
+}
+APPROVED_STATE_BY_STEP = {
+    "Direct Manager": "direct_manager_approved",
+    "Department Manager": "department_manager_approved",
+}
+
 
 def _count_working_days(date_from, date_to):
     if not date_from or not date_to or date_to < date_from:
@@ -621,7 +635,14 @@ class BusinessTripRequest(models.Model):
 
     state = fields.Selection(
         [
-            ("draft", "Draft"),
+            ("draft", "Draft / مسودة"),
+            ("submitted", "Submitted / تم التقديم"),
+            ("pending_direct_manager", "Pending Direct Manager Approval / بانتظار موافقة المدير المباشر"),
+            ("direct_manager_approved", "Direct Manager Approved / تمت موافقة المدير المباشر"),
+            ("pending_department_manager", "Pending Department Manager Approval / بانتظار موافقة مدير الإدارة"),
+            ("department_manager_approved", "Department Manager Approved / تمت موافقة مدير الإدارة"),
+            ("pending_ceo", "Pending CEO Approval / بانتظار موافقة الرئيس التنفيذي"),
+            ("approved", "Approved / معتمد"),
             ("pending_approval", "Pending Approval"),
             ("hr_review", "Waiting for HR"),
             ("allowance_calculated", "Ready for Travel"),
@@ -637,6 +658,9 @@ class BusinessTripRequest(models.Model):
         default="draft",
         required=True,
         tracking=True,
+        help="pending_approval is a fallback used only when a custom "
+        "Approval Step (Configuration > Approval Steps) doesn't match one "
+        "of Direct Manager / Department Manager / CEO.",
     )
 
     @api.model_create_multi
@@ -745,10 +769,11 @@ class BusinessTripRequest(models.Model):
                     "approver_id": approver_id,
                     "approver_group_id": group_id,
                 }))
-            rec.write({"approval_line_ids": lines, "state": "pending_approval"})
+            rec.write({"approval_line_ids": lines, "state": "submitted"})
             rec.message_post(body=_("Request submitted for approval."))
             first_line = rec._current_approval_line()
             if first_line:
+                rec.state = PENDING_STATE_BY_STEP.get(first_line.name, "pending_approval")
                 rec._notify_line_approver(first_line)
 
             if rec.employee_id and rec.trip_type and not rec.employee_id.frequent_traveler:
@@ -794,12 +819,27 @@ class BusinessTripRequest(models.Model):
             rec.message_post(
                 body=_("%s approved by %s.") % (line.name, self.env.user.name)
             )
+            approved_state = APPROVED_STATE_BY_STEP.get(line.name)
+            if approved_state:
+                rec.state = approved_state
             next_line = rec._current_approval_line()
             if next_line:
+                rec.state = PENDING_STATE_BY_STEP.get(next_line.name, "pending_approval")
                 rec._notify_line_approver(next_line)
             else:
+                rec.state = "approved"
+                rec.message_post(body=_("Request fully approved."))
                 rec.state = "hr_review"
-                rec.message_post(body=_("Request fully approved. Routed to HR for review."))
+                rec.message_post(body=_("Routed to HR for review."))
+                hr_group = self.env.ref(
+                    "business_trip_request.group_business_trip_hr", raise_if_not_found=False
+                )
+                if hr_group:
+                    for user in hr_group.users:
+                        rec.activity_schedule(
+                            "mail.mail_activity_data_todo", user_id=user.id,
+                            summary=_("HR Review required for %s") % rec.name,
+                        )
 
     def _open_reason_wizard(self, action_type):
         self.ensure_one()

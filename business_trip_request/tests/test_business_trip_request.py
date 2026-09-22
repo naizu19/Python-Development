@@ -99,9 +99,10 @@ class TestBusinessTripRequest(TransactionCase):
     def test_submit_succeeds_with_enough_advance_notice(self):
         trip = self._make_request()
         trip.action_submit()
-        self.assertEqual(trip.state, "pending_approval")
-        # Default configuration: Manager, Department Manager, CEO, HR Review
-        self.assertEqual(len(trip.approval_line_ids), 4)
+        self.assertEqual(trip.state, "pending_direct_manager")
+        # Default configuration: Direct Manager, Department Manager, CEO
+        # (HR Review is automatic routing after CEO approval, not a step)
+        self.assertEqual(len(trip.approval_line_ids), 3)
 
     # ------------------------------------------------------------
     # Rule 17: No overnight stay => reduced allowance (configurable factor)
@@ -281,22 +282,28 @@ class TestBusinessTripRequest(TransactionCase):
     def test_approval_chain_moves_sequentially_through_all_steps(self):
         trip = self._make_request()
         trip.action_submit()
-        self.assertEqual(trip.state, "pending_approval")
-        self.assertEqual(len(trip.approval_line_ids), 4)
+        self.assertEqual(trip.state, "pending_direct_manager")
+        self.assertEqual(len(trip.approval_line_ids), 3)
 
-        # Manager, Department Manager, CEO
         trip.action_approve()
-        trip.action_approve()
-        trip.action_approve()
-        self.assertEqual(trip.state, "pending_approval")
+        self.assertEqual(trip.state, "pending_department_manager")
 
-        # HR Review (last configured step)
+        trip.action_approve()
+        self.assertEqual(trip.state, "pending_ceo")
+
+        # CEO is the last configured step: approving it routes straight to HR
         trip.action_approve()
         self.assertEqual(trip.state, "hr_review")
 
         for line in trip.approval_line_ids:
             self.assertEqual(line.state, "approved")
             self.assertTrue(line.approved_by)
+
+    def test_approval_chain_uses_bilingual_pending_states(self):
+        trip = self._make_request()
+        trip.action_submit()
+        self.assertIn("Direct Manager", dict(trip._fields["state"].selection)[trip.state])
+        self.assertIn("المدير المباشر", dict(trip._fields["state"].selection)[trip.state])
 
     def test_reject_stores_reason_and_stops_workflow(self):
         trip = self._make_request()
@@ -342,6 +349,9 @@ class TestBusinessTripRequest(TransactionCase):
         self.assertEqual(len(trip.approval_line_ids), 1)
         self.assertEqual(trip.approval_line_ids.name, "Finance Sign-off")
         self.assertEqual(trip.approval_line_ids.approver_group_id, finance_group)
+        # A step name that isn't Direct Manager/Department Manager/CEO falls
+        # back to the generic "pending_approval" state.
+        self.assertEqual(trip.state, "pending_approval")
         # restore steps for other tests in this class
         steps.write({"active": True})
 

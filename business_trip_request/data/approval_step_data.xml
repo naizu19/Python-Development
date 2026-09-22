@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="approval_step_direct_manager" model="business.trip.approval.step">
-        <field name="name">Manager</field>
+        <field name="name">Direct Manager</field>
         <field name="sequence">10</field>
         <field name="source">employee_manager</field>
     </record>
@@ -18,10 +18,9 @@
         <field name="source">ceo</field>
     </record>
 
-    <record id="approval_step_hr" model="business.trip.approval.step">
-        <field name="name">HR Review</field>
-        <field name="sequence">40</field>
-        <field name="source">group</field>
-        <field name="group_id" ref="group_business_trip_hr"/>
-    </record>
+    <!-- HR Review is no longer a manual approval step: after CEO approval
+         the request is routed to HR automatically (state -> hr_review).
+         This removes the step for databases upgrading from an earlier
+         version where it existed as a 4th approval step. -->
+    <delete model="business.trip.approval.step" id="approval_step_hr"/>
 </odoo>
