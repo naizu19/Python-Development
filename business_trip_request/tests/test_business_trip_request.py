@@ -99,7 +99,8 @@ class TestBusinessTripRequest(TransactionCase):
     def test_submit_succeeds_with_enough_advance_notice(self):
         trip = self._make_request()
         trip.action_submit()
-        self.assertEqual(trip.state, "pending_direct_manager")
+        self.assertEqual(trip.state, "submitted")
+        self.assertEqual(trip.current_step_name, "Direct Manager")
         # Default configuration: Direct Manager, Department Manager, CEO
         # (HR Review is automatic routing after CEO approval, not a step)
         self.assertEqual(len(trip.approval_line_ids), 3)
@@ -282,14 +283,17 @@ class TestBusinessTripRequest(TransactionCase):
     def test_approval_chain_moves_sequentially_through_all_steps(self):
         trip = self._make_request()
         trip.action_submit()
-        self.assertEqual(trip.state, "pending_direct_manager")
+        self.assertEqual(trip.state, "submitted")
+        self.assertEqual(trip.current_step_name, "Direct Manager")
         self.assertEqual(len(trip.approval_line_ids), 3)
 
         trip.action_approve()
-        self.assertEqual(trip.state, "pending_department_manager")
+        self.assertEqual(trip.state, "direct_manager_approved")
+        self.assertEqual(trip.current_step_name, "Department Manager")
 
         trip.action_approve()
-        self.assertEqual(trip.state, "pending_ceo")
+        self.assertEqual(trip.state, "department_manager_approved")
+        self.assertEqual(trip.current_step_name, "CEO")
 
         # CEO is the last configured step: approving it routes straight to HR
         trip.action_approve()
@@ -299,11 +303,14 @@ class TestBusinessTripRequest(TransactionCase):
             self.assertEqual(line.state, "approved")
             self.assertTrue(line.approved_by)
 
-    def test_approval_chain_uses_bilingual_pending_states(self):
+    def test_approval_chain_uses_bilingual_approved_states(self):
         trip = self._make_request()
         trip.action_submit()
-        self.assertIn("Direct Manager", dict(trip._fields["state"].selection)[trip.state])
-        self.assertIn("المدير المباشر", dict(trip._fields["state"].selection)[trip.state])
+        trip.action_approve()
+        state_labels = dict(trip._fields["state"].selection)
+        self.assertEqual(trip.state, "direct_manager_approved")
+        self.assertIn("Direct Manager", state_labels[trip.state])
+        self.assertIn("المدير المباشر", state_labels[trip.state])
 
     def test_reject_stores_reason_and_stops_workflow(self):
         trip = self._make_request()
@@ -349,10 +356,42 @@ class TestBusinessTripRequest(TransactionCase):
         self.assertEqual(len(trip.approval_line_ids), 1)
         self.assertEqual(trip.approval_line_ids.name, "Finance Sign-off")
         self.assertEqual(trip.approval_line_ids.approver_group_id, finance_group)
-        # A step name that isn't Direct Manager/Department Manager/CEO falls
-        # back to the generic "pending_approval" state.
-        self.assertEqual(trip.state, "pending_approval")
+        self.assertEqual(trip.state, "submitted")
+        self.assertEqual(trip.current_step_name, "Finance Sign-off")
+
+        # A step name that isn't Direct Manager/Department Manager/CEO
+        # falls back to the generic "pending_approval" state once approved
+        # (here it's also the last step, so it's immediately routed to HR).
+        trip.action_approve()
+        self.assertEqual(trip.state, "hr_review")
+
         # restore steps for other tests in this class
+        steps.write({"active": True})
+
+    def test_unmapped_step_name_uses_pending_approval_fallback(self):
+        # Two custom steps (neither named Direct Manager/Department
+        # Manager/CEO): approving the first should leave the request on
+        # the generic "pending_approval" fallback state while the second
+        # step is still outstanding.
+        steps = self.env["business.trip.approval.step"].search([])
+        steps.write({"active": False})
+        finance_group = self.env.ref("business_trip_request.group_business_trip_finance")
+        hr_group = self.env.ref("business_trip_request.group_business_trip_hr")
+        self.env["business.trip.approval.step"].create({
+            "name": "Finance Sign-off", "sequence": 5,
+            "source": "group", "group_id": finance_group.id,
+        })
+        self.env["business.trip.approval.step"].create({
+            "name": "Second Sign-off", "sequence": 6,
+            "source": "group", "group_id": hr_group.id,
+        })
+        trip = self._make_request()
+        trip.action_submit()
+        trip.action_approve()
+        self.assertEqual(trip.state, "pending_approval")
+        self.assertEqual(trip.current_step_name, "Second Sign-off")
+        trip.action_approve()
+        self.assertEqual(trip.state, "hr_review")
         steps.write({"active": True})
 
     # ------------------------------------------------------------

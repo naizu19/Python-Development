@@ -14,18 +14,17 @@ EUROPE_JAPAN_CODES = {
 
 WEEKEND_ISO_WEEKDAYS = {5, 6}  # Friday, Saturday
 
-# Approval step name -> the specific "pending"/"approved" state to show on
-# the main record while that step is active. Any step whose name isn't
-# listed here (e.g. a custom step added in Configuration > Approval Steps)
-# falls back to the generic "pending_approval" state.
-PENDING_STATE_BY_STEP = {
-    "Direct Manager": "pending_direct_manager",
-    "Department Manager": "pending_department_manager",
-    "CEO": "pending_ceo",
-}
+# Approval step name -> the state to record once that step is approved.
+# Who the request is CURRENTLY waiting on is shown separately via
+# current_step_name (derived live from approval_line_ids), not a dedicated
+# state value - that keeps the state list short and avoids a state value
+# per pending step. Any step whose name isn't listed here (e.g. a custom
+# step added in Configuration > Approval Steps) simply doesn't move the
+# main state until the whole chain is done.
 APPROVED_STATE_BY_STEP = {
     "Direct Manager": "direct_manager_approved",
     "Department Manager": "department_manager_approved",
+    "CEO": "ceo_approved",
 }
 
 
@@ -637,12 +636,9 @@ class BusinessTripRequest(models.Model):
         [
             ("draft", "Draft / مسودة"),
             ("submitted", "Submitted / تم التقديم"),
-            ("pending_direct_manager", "Pending Direct Manager Approval / بانتظار موافقة المدير المباشر"),
-            ("direct_manager_approved", "Direct Manager Approved / تمت موافقة المدير المباشر"),
-            ("pending_department_manager", "Pending Department Manager Approval / بانتظار موافقة مدير الإدارة"),
-            ("department_manager_approved", "Department Manager Approved / تمت موافقة مدير الإدارة"),
-            ("pending_ceo", "Pending CEO Approval / بانتظار موافقة الرئيس التنفيذي"),
-            ("approved", "Approved / معتمد"),
+            ("direct_manager_approved", "Approved by Direct Manager / تمت الموافقة من المدير المباشر"),
+            ("department_manager_approved", "Approved by Department Manager / تمت الموافقة من مدير الإدارة"),
+            ("ceo_approved", "Approved by CEO / تمت الموافقة من الرئيس التنفيذي"),
             ("pending_approval", "Pending Approval"),
             ("hr_review", "Waiting for HR"),
             ("allowance_calculated", "Ready for Travel"),
@@ -660,7 +656,8 @@ class BusinessTripRequest(models.Model):
         tracking=True,
         help="pending_approval is a fallback used only when a custom "
         "Approval Step (Configuration > Approval Steps) doesn't match one "
-        "of Direct Manager / Department Manager / CEO.",
+        "of Direct Manager / Department Manager / CEO. Who the request is "
+        "currently waiting on is shown separately (Currently Pending With).",
     )
 
     @api.model_create_multi
@@ -773,7 +770,6 @@ class BusinessTripRequest(models.Model):
             rec.message_post(body=_("Request submitted for approval."))
             first_line = rec._current_approval_line()
             if first_line:
-                rec.state = PENDING_STATE_BY_STEP.get(first_line.name, "pending_approval")
                 rec._notify_line_approver(first_line)
 
             if rec.employee_id and rec.trip_type and not rec.employee_id.frequent_traveler:
@@ -822,12 +818,12 @@ class BusinessTripRequest(models.Model):
             approved_state = APPROVED_STATE_BY_STEP.get(line.name)
             if approved_state:
                 rec.state = approved_state
+            elif not rec._current_approval_line():
+                rec.state = "pending_approval"
             next_line = rec._current_approval_line()
             if next_line:
-                rec.state = PENDING_STATE_BY_STEP.get(next_line.name, "pending_approval")
                 rec._notify_line_approver(next_line)
             else:
-                rec.state = "approved"
                 rec.message_post(body=_("Request fully approved."))
                 rec.state = "hr_review"
                 rec.message_post(body=_("Routed to HR for review."))

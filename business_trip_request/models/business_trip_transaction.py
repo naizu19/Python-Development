@@ -29,7 +29,9 @@ class BusinessTripTransaction(models.Model):
         "res.currency", related="request_id.currency_id", store=True
     )
     date = fields.Date(required=True, default=fields.Date.context_today)
-    processed_by = fields.Many2one("res.users", required=True)
+    processed_by = fields.Many2one(
+        "res.users", required=True, default=lambda self: self.env.user
+    )
     note = fields.Char()
 
     # ---------------------------------------------------------------
